@@ -186,14 +186,17 @@ const VehicleTypeRateForm = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
-                                    Description
+                                    Description <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
-                                    {...register('description')}
+                                    {...register('description', { required: 'Description is required' })}
                                     rows="3"
                                     className="form-textarea"
-                                    placeholder="Enter description (optional)"
+                                    placeholder="Enter description"
                                 />
+                                {errors.description && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
+                                )}
                             </div>
                         </div>
                     </div>
