@@ -6,7 +6,7 @@ import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import ReactPaginate from 'react-paginate';
-import { FaSearch, FaEye, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaEye, FaEdit, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 const VehicleTypeList = () => {
@@ -88,7 +88,7 @@ const VehicleTypeList = () => {
             <div className="search-container">
                 <div className="flex items-center justify-between gap-4">
                     <div className="w-80 relative">
-                        <FaSearch className="search-icon" />
+                        <FaSearch className="search-icon absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                         <input
                             type="text"
                             placeholder="Search vehicle types by title..."
@@ -208,9 +208,6 @@ const VehicleTypeList = () => {
                                             </button>
                                             <button className="action-button action-button-edit">
                                                 <FaEdit size={16} />
-                                            </button>
-                                            <button className="action-button action-button-delete">
-                                                <FaTrash size={16} />
                                             </button>
                                         </div>
                                     </td>

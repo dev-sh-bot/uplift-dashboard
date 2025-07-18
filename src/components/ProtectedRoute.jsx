@@ -5,10 +5,7 @@ import { selectUser } from '../reducers/authSlice';
 
 const ProtectedRoute = ({ children, loggedIn = false }) => {
     const user = useSelector(selectUser);
-    
 
-
-    console.log(user);
     // Handle routes that should only be accessible to unauthenticated users (e.g., Login)
     if (loggedIn) {
         if (user == null) {

@@ -6,7 +6,7 @@ import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import ReactPaginate from 'react-paginate';
-import { FaSearch, FaEye, FaEdit, FaTrash, FaCog, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaEye, FaEdit, FaCog } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import StatusUpdateModal from '../components/StatusUpdateModal';
 
@@ -51,7 +51,7 @@ const RidersList = () => {
     const updateRiderStatus = async (riderId, newStatus, suspensionReason = '') => {
         try {
             setIsUpdatingStatus(true);
-            
+
             const response = await axios.put(
                 `${API_URL}admin/riders/approved/${riderId}/${newStatus}`,
                 { reason: suspensionReason },
@@ -144,7 +144,7 @@ const RidersList = () => {
             <div className="search-container">
                 <div className="flex items-center justify-between gap-4">
                     <div className="w-80 relative">
-                        <FaSearch className="search-icon" />
+                        <FaSearch className="search-icon absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                         <input
                             type="text"
                             placeholder="Search riders by name, email, or phone..."
@@ -153,14 +153,6 @@ const RidersList = () => {
                             className="search-input"
                         />
                     </div>
-                    
-                    <button
-                        onClick={() => navigate('/riders/add')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center space-x-2 font-medium"
-                    >
-                        <FaPlus size={14} />
-                        <span>Add Rider</span>
-                    </button>
                 </div>
             </div>
 
@@ -230,13 +222,13 @@ const RidersList = () => {
                                     </td>
                                     <td className="table-cell text-sm font-medium">
                                         <div className="flex space-x-2">
-                                            <button 
+                                            <button
                                                 className="action-button action-button-view"
                                                 onClick={() => navigate(`/riders/${rider.id}`)}
                                             >
                                                 <FaEye size={16} />
                                             </button>
-                                            <button 
+                                            <button
                                                 className="action-button action-button-settings"
                                                 onClick={() => handleStatusUpdate(rider)}
                                                 title="Update Status"
@@ -245,9 +237,6 @@ const RidersList = () => {
                                             </button>
                                             <button className="action-button action-button-edit">
                                                 <FaEdit size={16} />
-                                            </button>
-                                            <button className="action-button action-button-delete">
-                                                <FaTrash size={16} />
                                             </button>
                                         </div>
                                     </td>
@@ -289,8 +278,9 @@ const RidersList = () => {
                     setSelectedRider(null);
                 }}
                 onConfirm={handleStatusConfirm}
-                currentStatus={selectedRider?.is_approved || ''}
+                currentStatus={selectedRider?.status || ''}
                 riderName={selectedRider ? `${selectedRider.first_name} ${selectedRider.last_name}` : ''}
+                riderId={selectedRider?.id}
                 isProcessing={isUpdatingStatus}
             />
         </div>

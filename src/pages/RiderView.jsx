@@ -6,14 +6,14 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaCheckCircle, FaTimesCircle, FaCog } from 'react-icons/fa';
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaCheckCircle, FaTimesCircle, FaCog, FaWallet, FaCar, FaIdCard, FaEye } from 'react-icons/fa';
 import StatusUpdateModal from '../components/StatusUpdateModal';
 import InspectionModal from '../components/InspectionModal';
 
 const RiderView = () => {
     const [rider, setRider] = useState(null);
     const [vehicles, setVehicles] = useState([]);
-    const [verificationDocs, setVerificationDocs] = useState({});
+    // const [verificationDocs, setVerificationDocs] = useState({});
     const [loading, setLoading] = useState(true);
     const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -38,7 +38,7 @@ const RiderView = () => {
 
             setRider(response.data.data);
             setVehicles(response.data.vehicles || []);
-            setVerificationDocs(response.data.verification_docs || {});
+            // setVerificationDocs(response.data.verification_docs || {});
         } catch (error) {
             console.error('Error fetching rider details:', error);
             triggerToast('Failed to fetch rider details', 'error');
@@ -51,7 +51,7 @@ const RiderView = () => {
     const updateRiderStatus = async (newStatus, suspensionReason = '') => {
         try {
             setIsUpdatingStatus(true);
-            
+
             // If status is being changed to suspended, send email first
             if (newStatus === 'suspended' && suspensionReason) {
                 try {
@@ -70,7 +70,7 @@ const RiderView = () => {
                     // Continue with status update even if email fails
                 }
             }
-            
+
             const response = await axios.put(
                 `${API_URL}admin/riders/approved/${id}/${newStatus}`,
                 { reason: suspensionReason },
@@ -107,28 +107,17 @@ const RiderView = () => {
 
     const getStatusBadge = (status) => {
         const statusClasses = {
-            active: 'bg-green-100 text-green-800',
-            inactive: 'bg-red-100 text-red-800',
-            offline: 'bg-gray-100 text-gray-800',
-            pending: 'bg-yellow-100 text-yellow-800',
+            active: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+            inactive: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+            offline: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+            pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+            suspended: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+            approved: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+            rejected: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
         };
         return (
-            <span className={`px-3 py-1 text-sm font-medium rounded-full ${statusClasses[status] || 'bg-gray-100 text-gray-800'}`}>
+            <span className={`px-3 py-1 text-sm font-medium rounded-full ${statusClasses[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'}`}>
                 {status}
-            </span>
-        );
-    };
-
-    const getApprovalBadge = (isApproved) => {
-        const approvalClasses = {
-            approved: 'bg-green-100 text-green-800',
-            rejected: 'bg-red-100 text-red-800',
-            pending: 'bg-yellow-100 text-yellow-800',
-            unknown: 'bg-gray-100 text-gray-800',
-        };
-        return (
-            <span className={`px-3 py-1 text-sm font-medium rounded-full ${approvalClasses[isApproved] || 'bg-gray-100 text-gray-800'}`}>
-                {isApproved}
             </span>
         );
     };
@@ -165,11 +154,20 @@ const RiderView = () => {
         );
     }
 
+    let licensePhotos = [];
+    try {
+        licensePhotos = rider.license_photo ? JSON.parse(rider.license_photo) : [];
+    } catch (e) {
+        licensePhotos = [];
+    }
+    const licenseFront = licensePhotos[0];
+    const licenseBack = licensePhotos[1];
+
     return (
         <div className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Profile Card */}
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 space-y-4">
                     <div className="page-card p-4">
                         <div className="text-center">
                             <div className="flex justify-center mb-3">
@@ -187,23 +185,23 @@ const RiderView = () => {
                                     </div>
                                 )}
                             </div>
-                            
+
                             <h2 className="text-xl font-bold text-gray-900 dark:text-facebook-text mb-1">
                                 {rider.first_name} {rider.last_name}
                             </h2>
                             <p className="text-gray-600 dark:text-facebook-textSecondary mb-1">@{rider.username}</p>
                             <p className="text-sm text-gray-500 dark:text-facebook-textMuted mb-3">ID: {rider.id}</p>
-                            
+
                             <div className="flex justify-center mb-3">
                                 {getStatusBadge(rider.status)}
                             </div>
-                            
+
                             <div className="space-y-2 text-sm">
                                 <div className="flex items-center justify-center space-x-2">
                                     <div className={`w-3 h-3 rounded-full ${rider.online_status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                                     <span className="text-gray-600 dark:text-facebook-textSecondary capitalize">{rider.online_status}</span>
                                 </div>
-                                
+
                                 <div className="flex items-center justify-center space-x-2">
                                     {rider.background_verfied ? (
                                         <FaCheckCircle className="text-green-600" />
@@ -217,7 +215,42 @@ const RiderView = () => {
                             </div>
                         </div>
                     </div>
+
+                    <div className="page-card p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-facebook-text">Account Status</h3>
+                            <button
+                                onClick={() => setStatusModalOpen(true)}
+                                className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                title="Update Status"
+                            >
+                                <FaCog size={16} />
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Status:</span>
+                                {getStatusBadge(rider.status)}
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Online:</span>
+                                <div className="flex items-center space-x-2">
+                                    <div className={`w-3 h-3 rounded-full ${rider.online_status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                    <span className="text-gray-900 dark:text-facebook-text capitalize">{rider.online_status}</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Approval:</span>
+                                {getStatusBadge(rider.is_approved)}
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Account Status:</span>
+                                {getStatusBadge(rider.account_status)}
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
 
                 {/* Profile Info and Vehicles */}
                 <div className="lg:col-span-2 space-y-4">
@@ -267,10 +300,6 @@ const RiderView = () => {
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">License Number:</span>
                                     <p className="text-gray-900 dark:text-facebook-text">{rider.license_number || 'Not provided'}</p>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Total Rides:</span>
-                                    <p className="text-gray-900 dark:text-facebook-text">{rider.total_rides || 0}</p>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Current Rating:</span>
@@ -372,79 +401,126 @@ const RiderView = () => {
                         </div>
                     )}
                 </div>
+            </div>
 
-                {/* Status and Account Info */}
-                <div className="lg:col-span-3">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Status Card */}
-                        <div className="page-card p-4">
-                            <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-facebook-text">Status Information</h2>
-                                <button
-                                    onClick={() => setStatusModalOpen(true)}
-                                    className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                    title="Update Status"
-                                >
-                                    <FaCog size={16} />
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Online Status:</span>
-                                    <div className="flex items-center space-x-2">
-                                        <div className={`w-3 h-3 rounded-full ${rider.online_status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                                        <span className="text-gray-900 dark:text-facebook-text capitalize">{rider.online_status}</span>
+            {/* New Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Wallet Amount Card */}
+                <div className="page-card p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                        <FaWallet className="text-green-600 text-xl" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-facebook-text">Wallet Balance</h3>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                            ${rider.wallet_balance || 0}
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-facebook-textSecondary">Available Balance</p>
+                    </div>
+                </div>
+
+                {/* Total Rides Card */}
+                <div className="page-card p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                        <FaCar className="text-blue-600 text-xl" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-facebook-text">Total Rides</h3>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                            {rider.total_rides || 0}
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-facebook-textSecondary">Completed Rides</p>
+                    </div>
+                </div>
+
+                {/* Rating Card */}
+                <div className="page-card p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                        <div className="text-yellow-600 text-xl">★</div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-facebook-text">Rating</h3>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
+                            {rider.current_rating || 0}
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-facebook-textSecondary">out of 5 stars</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Driving License Images */}
+            <div className="page-card p-4">
+                <div className="flex items-center space-x-3 mb-4">
+                    <FaIdCard className="text-purple-600 text-xl" />
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-facebook-text">Driving License</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Front Side */}
+                    <div className="space-y-3">
+                        <h3 className="text-md font-medium text-gray-900 dark:text-facebook-text flex items-center space-x-2">
+                            <span>Front Side</span>
+                            {rider.license_front_verified && (
+                                <FaCheckCircle className="text-green-600" title="Verified" />
+                            )}
+                        </h3>
+                        <div className="relative">
+                            {licenseFront ? (
+                                <div className="relative group">
+                                    <img
+                                        src={`${ASSETS_URL}${licenseFront}`}
+                                        alt="License Front"
+                                        className="w-full h-64 object-cover rounded-lg border border-gray-200 dark:border-facebook-border cursor-pointer"
+                                        onClick={() => window.open(`${ASSETS_URL}${licenseFront}`, '_blank')}
+                                    />
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                        <FaEye className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-2xl" />
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Account Status:</span>
-                                    {getStatusBadge(rider.status)}
+                            ) : (
+                                <div className="w-full h-64 bg-gray-100 dark:bg-facebook-surface rounded-lg border border-gray-200 dark:border-facebook-border flex items-center justify-center">
+                                    <p className="text-gray-500 dark:text-facebook-textSecondary">No image uploaded</p>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Approval Status:</span>
-                                    {getApprovalBadge(rider.is_approved)}
-                                </div>
-                            </div>
+                            )}
                         </div>
+                        <div className="text-sm text-gray-600 dark:text-facebook-textSecondary">
+                            <p><strong>License Number:</strong> {rider.license_number || 'Not provided'}</p>
+                            {rider.license_expiry && (
+                                <p><strong>Expiry Date:</strong> {formatDate(rider.license_expiry)}</p>
+                            )}
+                        </div>
+                    </div>
 
-                        {/* Timestamps */}
-                        <div className="page-card p-4">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-facebook-text mb-3">Account Information</h2>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Member Since:</span>
-                                    <p className="text-gray-900 dark:text-facebook-text">{formatDate(rider.created_at)}</p>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Last Updated:</span>
-                                    <p className="text-gray-900 dark:text-facebook-text">{formatDate(rider.updated_at)}</p>
-                                </div>
-                                {rider.license_expiry && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">License Expiry:</span>
-                                        <p className="text-gray-900 dark:text-facebook-text">{formatDate(rider.license_expiry)}</p>
+                    {/* Back Side */}
+                    <div className="space-y-3">
+                        <h3 className="text-md font-medium text-gray-900 dark:text-facebook-text flex items-center space-x-2">
+                            <span>Back Side</span>
+                            {rider.license_back_verified && (
+                                <FaCheckCircle className="text-green-600" title="Verified" />
+                            )}
+                        </h3>
+                        <div className="relative">
+                            {licenseBack ? (
+                                <div className="relative group">
+                                    <img
+                                        src={`${ASSETS_URL}${licenseBack}`}
+                                        alt="License Back"
+                                        className="w-full h-64 object-cover rounded-lg border border-gray-200 dark:border-facebook-border cursor-pointer"
+                                        onClick={() => window.open(`${ASSETS_URL}${licenseBack}`, '_blank')}
+                                    />
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                        <FaEye className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-2xl" />
                                     </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Verification Documents */}
-                        {Object.keys(verificationDocs).length > 0 && (
-                            <div className="page-card p-4">
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-facebook-text mb-3">Verification Documents</h2>
-                                <div className="space-y-2">
-                                    {Object.entries(verificationDocs).map(([key, value]) => (
-                                        <div key={key} className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">{value}:</span>
-                                            <div className="flex items-center space-x-2">
-                                                <FaCheckCircle className="text-green-600" />
-                                                <span className="text-green-600 text-sm">Verified</span>
-                                            </div>
-                                        </div>
-                                    ))}
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="w-full h-64 bg-gray-100 dark:bg-facebook-surface rounded-lg border border-gray-200 dark:border-facebook-border flex items-center justify-center">
+                                    <p className="text-gray-500 dark:text-facebook-textSecondary">No image uploaded</p>
+                                </div>
+                            )}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-facebook-textSecondary">
+                            <p><strong>Verification Status:</strong> {rider.license_back_verified ? 'Verified' : 'Not Verified'}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -454,8 +530,9 @@ const RiderView = () => {
                 isOpen={statusModalOpen}
                 onClose={() => setStatusModalOpen(false)}
                 onConfirm={handleStatusConfirm}
-                currentStatus={rider?.is_approved || ''}
+                currentStatus={rider?.status || ''}
                 riderName={`${rider?.first_name} ${rider?.last_name}`}
+                riderId={rider?.id}
                 isProcessing={isUpdatingStatus}
             />
 

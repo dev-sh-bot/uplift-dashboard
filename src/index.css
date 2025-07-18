@@ -108,36 +108,90 @@ body {
     color: #E4E6EB;
 }
 
-.search-input:focus {
-    outline: none;
-    ring: 2px;
-    ring-color: #3B82F6;
-    border-color: transparent;
+/* Rich Text Editor (Quill) Theme Support */
+.rich-text-editor-container {
+    --editor-bg: #FFFFFF;
+    --editor-text: #111827;
+    --editor-border: #D1D5DB;
 }
 
-.search-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
+.dark .rich-text-editor-container {
+    --editor-bg: #3A3B3C;
+    --editor-text: #E4E6EB;
+    --editor-border: #3A3B3C;
+}
+
+.rich-text-editor .ql-toolbar {
+    background-color: var(--editor-bg);
+    border-color: var(--editor-border);
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+}
+
+.rich-text-editor .ql-container {
+    background-color: var(--editor-bg);
+    border-color: var(--editor-border);
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    min-height: 200px;
+}
+
+.rich-text-editor .ql-editor {
+    color: var(--editor-text);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.rich-text-editor .ql-editor.ql-blank::before {
+    color: #6B7280;
+}
+
+.dark .rich-text-editor .ql-editor.ql-blank::before {
     color: #9CA3AF;
 }
 
-.dark .search-icon {
-    color: #8E8F91;
+.rich-text-editor .ql-stroke {
+    stroke: var(--editor-text);
 }
 
-.search-button {
-    padding: 0.75rem 1.5rem;
-    background-color: #2563EB;
-    color: white;
-    border-radius: 0.75rem;
-    font-weight: 500;
-    transition: background-color 0.2s;
+.rich-text-editor .ql-fill {
+    fill: var(--editor-text);
 }
 
-.search-button:hover {
-    background-color: #1D4ED8;
+.rich-text-editor .ql-picker {
+    color: var(--editor-text);
+}
+
+.rich-text-editor .ql-picker-options {
+    background-color: var(--editor-bg);
+    border-color: var(--editor-border);
+}
+
+.rich-text-editor .ql-toolbar button:hover,
+.rich-text-editor .ql-toolbar .ql-picker-label:hover {
+    color: #3B82F6;
+}
+
+.rich-text-editor .ql-toolbar button:hover .ql-stroke,
+.rich-text-editor .ql-toolbar .ql-picker-label:hover .ql-stroke {
+    stroke: #3B82F6;
+}
+
+.rich-text-editor .ql-toolbar button:hover .ql-fill,
+.rich-text-editor .ql-toolbar .ql-picker-label:hover .ql-fill {
+    fill: #3B82F6;
+}
+
+.rich-text-editor .ql-toolbar .ql-active {
+    color: #3B82F6;
+}
+
+.rich-text-editor .ql-toolbar .ql-active .ql-stroke {
+    stroke: #3B82F6;
+}
+
+.rich-text-editor .ql-toolbar .ql-active .ql-fill {
+    fill: #3B82F6;
 }
 
 /* Form Styles - Consistent across all pages */
@@ -824,4 +878,23 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .dark aside[class*="sticky"] > div:first-child {
     background-color: #242526 !important;
+}
+
+/* Quill Editor Header Color Theming */
+.rich-text-editor .ql-editor h1,
+.rich-text-editor .ql-editor h2,
+.rich-text-editor .ql-editor h3,
+.rich-text-editor .ql-editor h4,
+.rich-text-editor .ql-editor h5,
+.rich-text-editor .ql-editor h6 {
+  color: var(--editor-text);
+}
+
+.dark .rich-text-editor .ql-editor h1,
+.dark .rich-text-editor .ql-editor h2,
+.dark .rich-text-editor .ql-editor h3,
+.dark .rich-text-editor .ql-editor h4,
+.dark .rich-text-editor .ql-editor h5,
+.dark .rich-text-editor .ql-editor h6 {
+  color: var(--editor-text);
 }

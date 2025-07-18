@@ -2,6 +2,11 @@ import { useState } from 'react';
 import Modal from 'react-modal';
 import PropTypes from 'prop-types';
 import { FaTimes } from 'react-icons/fa';
+import axios from 'axios';
+import { API_URL } from '../utils/constants';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../reducers/authSlice';
+import { triggerToast } from '../utils/helper';
 
 const StatusUpdateModal = ({
     isOpen,
@@ -9,11 +14,14 @@ const StatusUpdateModal = ({
     onConfirm,
     currentStatus,
     riderName,
+    riderId,
     isProcessing = false
 }) => {
     const [selectedStatus, setSelectedStatus] = useState('');
     const [suspensionReason, setSuspensionReason] = useState('');
     const [errors, setErrors] = useState({});
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const user = useSelector(selectUser);
 
     const statusOptions = [
         { value: 'approved', label: 'Approved', color: 'text-green-600' },
@@ -25,6 +33,27 @@ const StatusUpdateModal = ({
         setSelectedStatus(status);
         setSuspensionReason('');
         setErrors({});
+    };
+
+    const sendSuspensionEmail = async (riderId, reason) => {
+        try {
+            setIsSendingEmail(true);
+            const response = await axios.post(`${API_URL}admin/riders/send-mail/${riderId}`, {
+                params: { reason },
+                headers: {
+                    Authorization: `Bearer ${user?.token}`,
+                },
+            });
+            
+            if (response.status === 200) {
+                triggerToast('Suspension email sent successfully', 'success');
+            }
+        } catch (error) {
+            console.error('Error sending suspension email:', error);
+            triggerToast('Failed to send suspension email', 'error');
+        } finally {
+            setIsSendingEmail(false);
+        }
     };
 
     const handleSubmit = async () => {
@@ -43,23 +72,9 @@ const StatusUpdateModal = ({
             return;
         }
 
-        // If status is being changed to suspended, we need to send email
-        if (selectedStatus === 'suspended') {
-            try {
-                // TODO: Replace with actual email API endpoint
-                // await axios.post(`${API_URL}admin/send-suspension-email`, {
-                //     rider_id: riderId,
-                //     reason: suspensionReason
-                // }, {
-                //     headers: {
-                //         Authorization: `Bearer ${user?.token}`,
-                //     },
-                // });
-                console.log('Sending suspension email with reason:', suspensionReason);
-            } catch (error) {
-                console.error('Error sending suspension email:', error);
-                // Continue with status update even if email fails
-            }
+        // If status is being changed to suspended, send email first
+        if (selectedStatus === 'suspended' && riderId) {
+            await sendSuspensionEmail(riderId, suspensionReason);
         }
 
         onConfirm(selectedStatus, suspensionReason);
@@ -86,7 +101,7 @@ const StatusUpdateModal = ({
                 <button
                     onClick={handleClose}
                     className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    disabled={isProcessing}
+                    disabled={isProcessing || isSendingEmail}
                 >
                     <FaTimes size={20} />
                 </button>
@@ -116,7 +131,7 @@ const StatusUpdateModal = ({
                                     checked={selectedStatus === option.value}
                                     onChange={() => handleStatusChange(option.value)}
                                     className="text-primary-600 focus:ring-primary-500"
-                                    disabled={isProcessing}
+                                    disabled={isProcessing || isSendingEmail}
                                 />
                                 <span className={`font-medium ${option.color}`}>
                                     {option.label}
@@ -138,23 +153,16 @@ const StatusUpdateModal = ({
                         <textarea
                             value={suspensionReason}
                             onChange={(e) => setSuspensionReason(e.target.value)}
-                            placeholder="Please provide a reason for suspension..."
+                            placeholder="Enter the reason for suspension..."
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            rows="4"
-                            disabled={isProcessing}
+                            rows="3"
+                            disabled={isProcessing || isSendingEmail}
                         />
                         {errors.reason && (
                             <p className="text-red-500 text-sm mt-1">{errors.reason}</p>
                         )}
-                    </div>
-                )}
-
-                {/* Warning for Suspension */}
-                {selectedStatus === 'suspended' && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
-                        <p className="text-red-800 dark:text-red-200 text-sm">
-                            <strong>Warning:</strong> Suspending a rider will prevent them from accepting new rides.
-                            This action can be reversed later.
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            An email notification will be sent to the rider with this reason.
                         </p>
                     </div>
                 )}
@@ -165,16 +173,16 @@ const StatusUpdateModal = ({
                 <button
                     onClick={handleClose}
                     className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    disabled={isProcessing}
+                    disabled={isProcessing || isSendingEmail}
                 >
                     Cancel
                 </button>
                 <button
                     onClick={handleSubmit}
-                    disabled={isProcessing || !selectedStatus}
+                    disabled={isProcessing || isSendingEmail || !selectedStatus}
                     className="px-4 py-2 text-sm font-medium text-white bg-primary-600 dark:bg-primary-700 border border-transparent rounded-md hover:bg-primary-700 dark:hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                    {isProcessing ? 'Updating...' : 'Update Status'}
+                    {isProcessing ? 'Updating...' : isSendingEmail ? 'Sending Email...' : 'Update Status'}
                 </button>
             </div>
         </Modal>
@@ -187,6 +195,7 @@ StatusUpdateModal.propTypes = {
     onConfirm: PropTypes.func.isRequired,
     currentStatus: PropTypes.string.isRequired,
     riderName: PropTypes.string.isRequired,
+    riderId: PropTypes.number,
     isProcessing: PropTypes.bool
 };
 

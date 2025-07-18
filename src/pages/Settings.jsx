@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { FaUsers, FaUserTie, FaGoogle, FaApple, FaSave, FaEdit, FaSpinner } from 'react-icons/fa';
+import { FaUsers, FaUserTie, FaGoogle, FaApple, FaSave, FaEdit } from 'react-icons/fa';
 import { ColorRing } from 'react-loader-spinner';
 import axios from 'axios';
 import { API_URL } from '../utils/constants';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/authSlice';
 import { triggerToast } from '../utils/helper';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState('rider');
@@ -32,6 +34,28 @@ const Settings = () => {
 
     const user = useSelector(selectUser);
 
+    // Quill editor configuration
+    const quillModules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'align': [] }],
+            ['link', 'blockquote', 'code-block'],
+            ['clean']
+        ],
+    };
+
+    const quillFormats = [
+        'header',
+        'bold', 'italic', 'underline', 'strike',
+        'list', 'bullet',
+        'color', 'background',
+        'align',
+        'link', 'blockquote', 'code-block'
+    ];
+
     // Fetch content from API
     const fetchContent = async (title, role) => {
         try {
@@ -43,12 +67,12 @@ const Settings = () => {
                 },
             });
 
-            if (response.data && response.data.data) {
+            if (response.data && response.data) {
                 setContentData(prev => ({
                     ...prev,
                     [role]: {
                         ...prev[role],
-                        [title]: response.data.data.content || ''
+                        [title]: response.data.content || ''
                     }
                 }));
             }
@@ -108,27 +132,6 @@ const Settings = () => {
         }
     };
 
-    const handleSave = async () => {
-        setIsSaving(true);
-        try {
-            // Here you would make API calls to save the settings
-            console.log('Saving settings:', {
-                activeTab,
-                contentData,
-                googleLoginEnabled,
-                appleLoginEnabled
-            });
-
-            triggerToast('Settings saved successfully', 'success');
-            setIsEditing(false);
-        } catch (error) {
-            console.error('Error saving settings:', error);
-            triggerToast('Failed to save settings', 'error');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
     const handleCancel = () => {
         setIsEditing(false);
         setEditingContent('');
@@ -166,8 +169,8 @@ const Settings = () => {
                             <button
                                 onClick={() => setActiveTab('rider')}
                                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === 'rider'
-                                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-l-4 border-blue-500'
-                                        : 'text-gray-600 dark:text-facebook-textSecondary hover:bg-gray-100 dark:hover:bg-facebook-hover'
+                                    ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-l-4 border-blue-500'
+                                    : 'text-gray-600 dark:text-facebook-textSecondary hover:bg-gray-100 dark:hover:bg-facebook-hover'
                                     }`}
                             >
                                 <FaUserTie className="text-lg" />
@@ -177,8 +180,8 @@ const Settings = () => {
                             <button
                                 onClick={() => setActiveTab('customer')}
                                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === 'customer'
-                                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-l-4 border-blue-500'
-                                        : 'text-gray-600 dark:text-facebook-textSecondary hover:bg-gray-100 dark:hover:bg-facebook-hover'
+                                    ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-l-4 border-blue-500'
+                                    : 'text-gray-600 dark:text-facebook-textSecondary hover:bg-gray-100 dark:hover:bg-facebook-hover'
                                     }`}
                             >
                                 <FaUsers className="text-lg" />
@@ -200,45 +203,6 @@ const Settings = () => {
                                 Manage content and login options for {activeTab === 'rider' ? 'riders' : 'customers'}
                             </p>
                         </div>
-
-                        <div className="flex space-x-3">
-                            {!isEditing ? (
-                                <button
-                                    onClick={() => setIsEditing(true)}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
-                                >
-                                    <FaEdit className="text-sm" />
-                                    <span>Edit</span>
-                                </button>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={handleCancel}
-                                        className="px-4 py-2 text-gray-700 dark:text-facebook-textSecondary bg-gray-100 dark:bg-facebook-surface border border-gray-300 dark:border-facebook-border rounded-xl hover:bg-gray-200 dark:hover:bg-facebook-hover transition-colors"
-                                        disabled={isSaving}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={isSaving}
-                                        className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
-                                    >
-                                        {isSaving ? (
-                                            <ColorRing
-                                                visible={true}
-                                                height="16"
-                                                width="16"
-                                                colors={['#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff']}
-                                            />
-                                        ) : (
-                                            <FaSave className="text-sm" />
-                                        )}
-                                        <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-                                    </button>
-                                </>
-                            )}
-                        </div>
                     </div>
 
                     {/* Content Tabs */}
@@ -249,8 +213,8 @@ const Settings = () => {
                                     key={tab}
                                     onClick={() => setActiveContentTab(tab)}
                                     className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeContentTab === tab
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-gray-600 dark:text-facebook-textSecondary hover:text-gray-900 dark:hover:text-facebook-text hover:bg-gray-100 dark:hover:bg-facebook-hover'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'text-gray-600 dark:text-facebook-textSecondary hover:text-gray-900 dark:hover:text-facebook-text hover:bg-gray-100 dark:hover:bg-facebook-hover'
                                         }`}
                                 >
                                     {getContentTabLabel(tab)}
@@ -268,12 +232,6 @@ const Settings = () => {
                                     {getContentTabLabel(activeContentTab)}
                                 </h3>
                                 <div className="flex items-center space-x-2">
-                                    {isLoading && (
-                                        <div className="flex items-center space-x-2 text-blue-600">
-                                            <FaSpinner className="animate-spin" />
-                                            <span className="text-sm">Loading...</span>
-                                        </div>
-                                    )}
                                     {!isLoading && !isEditing && (
                                         <button
                                             onClick={handleEditContent}
@@ -297,13 +255,22 @@ const Settings = () => {
                                 </div>
                             ) : isEditing ? (
                                 <div className="space-y-4">
-                                    <textarea
-                                        value={editingContent}
-                                        onChange={(e) => setEditingContent(e.target.value)}
-                                        rows="12"
-                                        className="w-full p-4 border border-gray-300 dark:border-facebook-border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm bg-white dark:bg-facebook-surface text-gray-900 dark:text-facebook-text"
-                                        placeholder={`Enter ${getContentTabLabel(activeContentTab).toLowerCase()} content...`}
-                                    />
+                                    <div className="rich-text-editor-container">
+                                        <ReactQuill
+                                            value={editingContent}
+                                            onChange={setEditingContent}
+                                            modules={quillModules}
+                                            formats={quillFormats}
+                                            placeholder={`Enter ${getContentTabLabel(activeContentTab).toLowerCase()} content...`}
+                                            className="rich-text-editor"
+                                            style={{
+                                                backgroundColor: 'var(--editor-bg)',
+                                                color: 'var(--editor-text)',
+                                                borderRadius: '0.75rem',
+                                                border: '1px solid var(--editor-border)'
+                                            }}
+                                        />
+                                    </div>
                                     <div className="flex justify-end space-x-3">
                                         <button
                                             onClick={handleCancel}
@@ -333,9 +300,12 @@ const Settings = () => {
                                 </div>
                             ) : (
                                 <div className="prose max-w-none">
-                                    <div className="text-sm text-gray-900 dark:text-facebook-textSecondary bg-gray-50 dark:bg-facebook-surface p-4 rounded-xl border border-gray-200 dark:border-facebook-border whitespace-pre-wrap">
-                                        {getCurrentContent() || 'No content available'}
-                                    </div>
+                                    <div
+                                        className="text-sm text-gray-900 dark:text-facebook-textSecondary bg-gray-50 dark:bg-facebook-surface p-4 rounded-xl border border-gray-200 dark:border-facebook-border"
+                                        dangerouslySetInnerHTML={{
+                                            __html: getCurrentContent() || '<p class="text-gray-500 dark:text-gray-400">No content available</p>'
+                                        }}
+                                    />
                                 </div>
                             )}
                         </div>

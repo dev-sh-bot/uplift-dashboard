@@ -6,7 +6,7 @@ import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import ReactPaginate from 'react-paginate';
-import { FaSearch, FaEye, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaEye, FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 const CustomerList = () => {
@@ -51,8 +51,6 @@ const CustomerList = () => {
     const handlePageChange = (selectedItem) => {
         setCurrentPage(selectedItem.selected + 1);
     };
-
-
 
     const getStatusBadge = (status) => {
         const statusClasses = {
@@ -100,7 +98,7 @@ const CustomerList = () => {
             <div className="search-container">
                 <div className="flex items-center justify-between gap-4">
                     <div className="w-80 relative">
-                        <FaSearch className="search-icon" />
+                        <FaSearch className="search-icon absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                         <input
                             type="text"
                             placeholder="Search customers by name, email, or phone..."
@@ -109,14 +107,6 @@ const CustomerList = () => {
                             className="search-input"
                         />
                     </div>
-                    
-                    <button
-                        onClick={() => navigate('/customers/add')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center space-x-2 font-medium"
-                    >
-                        <FaPlus size={14} />
-                        <span>Add Customer</span>
-                    </button>
                 </div>
             </div>
 
@@ -186,7 +176,7 @@ const CustomerList = () => {
                                     </td>
                                     <td className="table-cell text-sm font-medium">
                                         <div className="flex space-x-2">
-                                            <button 
+                                            <button
                                                 className="action-button action-button-view"
                                                 onClick={() => navigate(`/customers/${customer.id}`)}
                                             >
@@ -194,9 +184,6 @@ const CustomerList = () => {
                                             </button>
                                             <button className="action-button action-button-edit">
                                                 <FaEdit size={16} />
-                                            </button>
-                                            <button className="action-button action-button-delete">
-                                                <FaTrash size={16} />
                                             </button>
                                         </div>
                                     </td>
