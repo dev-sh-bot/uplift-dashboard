@@ -1,17 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
-    selectCities,
     selectGlobalDataLoading,
     selectGlobalDataError,
     selectGlobalDataInitialized,
     setInitialized
 } from '../reducers/globalDataSlice';
-import { fetchCountries, fetchStatesByCountry, fetchAllStates } from '../services/locationService';
+import { fetchCountries, fetchStatesByCountry, fetchAllStates, fetchCitiesByState } from '../services/locationService';
 
 export const useGlobalData = () => {
     const dispatch = useDispatch();
-    const cities = useSelector(selectCities);
     const loading = useSelector(selectGlobalDataLoading);
     const error = useSelector(selectGlobalDataError);
     const initialized = useSelector(selectGlobalDataInitialized);
@@ -21,12 +19,12 @@ export const useGlobalData = () => {
     const [states, setStates] = useState([]);
     const [countriesLoading, setCountriesLoading] = useState(false);
     const [statesLoading, setStatesLoading] = useState(false);
+    const [cities, setCities] = useState([]);
 
     // Initialize global data on first load
     useEffect(() => {
         console.log('useGlobalData: Initializing...', { 
-            initialized, 
-            citiesLength: cities.length 
+            initialized
         });
         
         if (!initialized) {
@@ -72,20 +70,27 @@ export const useGlobalData = () => {
         return states.filter(state => state.country_id === countryId);
     };
 
-    const getCitiesByState = (stateId) => {
-        return cities.filter(city => city.stateId === stateId.toString());
-    };
+    // Fetch cities by state from backend
+    const getCitiesByState = useCallback(async (stateId) => {
+        const result = await fetchCitiesByState(stateId);
+        if (result.success) {
+            setCities(result.data);
+        } else {
+            setCities([]);
+        }
+        return result;
+    }, []);
 
     const getCountryById = (countryId) => {
-        return countries.find(country => country.id === countryId);
+        return countries.find(country => String(country.id) === String(countryId));
     };
 
     const getStateById = (stateId) => {
-        return states.find(state => state.id === stateId);
+        return states.find(state => String(state.id) === String(stateId));
     };
 
     const getCityById = (cityId) => {
-        return cities.find(city => city.id === cityId);
+        return cities.find(city => String(city.id) === String(cityId));
     };
 
     const getCountryName = (countryId) => {
@@ -104,7 +109,7 @@ export const useGlobalData = () => {
     };
 
     return {
-        // Cities from Redux
+        // Cities from local state
         cities,
         loading,
         error,

@@ -1,8 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
-import citiesData from '../assets/cities.json';
 
 const initialState = {
-    cities: citiesData.cities || [],
+    cities:  [],
     loading: false,
     error: null,
     initialized: false,

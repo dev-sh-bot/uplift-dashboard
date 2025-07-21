@@ -63,3 +63,45 @@ export const fetchAllStates = async () => {
         };
     }
 }; 
+
+// Fetch cities for a specific state
+export const fetchCitiesByState = async (stateId) => {
+    try {
+        const token = getAuthToken();
+        const response = await axios.get(`${API_URL}admin/cities/${stateId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error fetching cities:', error);
+        return {
+            success: false,
+            error: error.response?.data || 'Failed to fetch cities'
+        };
+    }
+}; 
+
+// Update customer status
+export const updateCustomerStatus = async (customerId, status) => {
+    try {
+        const token = getAuthToken();
+        const response = await axios.put(
+            `${API_URL}admin/customers/update-status/${customerId}?status=${status}`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error('Error updating customer status:', error);
+        return {
+            success: false,
+            error: error.response?.data || 'Failed to update customer status'
+        };
+    }
+}; 

@@ -14,6 +14,7 @@ import {
   FaCar,
   FaUsers,
   FaCog,
+  FaBolt,
 } from "react-icons/fa"
 import { LuLayoutDashboard, LuLogOut } from "react-icons/lu"
 
@@ -40,6 +41,11 @@ const menuItems = [
     title: "Vehicle Type Rates",
     path: "/vehicle-type-rates",
     icon: <FaCar />,
+  },
+  {
+    title: "Surge Rates",
+    path: "/surge-rates",
+    icon: <FaBolt />,
   },
   {
     title: "Settings",

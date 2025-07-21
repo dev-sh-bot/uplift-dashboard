@@ -21,6 +21,10 @@ const VehicleTypeRateForm = React.lazy(() => import("./pages/VehicleTypeRateForm
 const CustomerList = React.lazy(() => import("./pages/CustomerList"));
 const CustomerView = React.lazy(() => import("./pages/CustomerView"));
 const Settings = React.lazy(() => import("./pages/Settings"));
+const VehicleTypeRateView = React.lazy(() => import("./pages/VehicleTypeRateView"));
+const SurgeRateList = React.lazy(() => import('./pages/SurgeRateList'));
+const SurgeRateCreate = React.lazy(() => import('./pages/SurgeRateCreate'));
+const SurgeRateView = React.lazy(() => import('./pages/SurgeRateView'));
 
 const router = createBrowserRouter([
   {
@@ -126,6 +130,81 @@ const router = createBrowserRouter([
     ),
     handle: {
       title: "Add Vehicle Type Rate"
+    }
+  },
+  {
+    path: "/vehicle-type-rates/edit/:id",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <VehicleTypeRateForm />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "Edit Vehicle Type Rate"
+    }
+  },
+  {
+    path: "/vehicle-type-rates/:id",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <VehicleTypeRateView />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "View Vehicle Type Rate"
+    }
+  },
+  {
+    path: "/surge-rates",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <SurgeRateList />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "Surge Rates"
+    }
+  },
+  {
+    path: "/surge-rates/create",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <SurgeRateCreate />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "Create Surge Rate"
+    }
+  },
+  {
+    path: "/surge-rates/:id",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <SurgeRateView />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "View Surge Rate"
     }
   },
   {
