@@ -6,11 +6,14 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
+import { updateCustomerStatus } from '../services/locationService';
+import Toggle from 'react-toggle';
 
 
 const CustomerView = () => {
     const [customer, setCustomer] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [statusUpdating, setStatusUpdating] = useState(false);
     const { id } = useParams();
     const navigate = useNavigate();
     const user = useSelector(selectUser);
@@ -38,18 +41,16 @@ const CustomerView = () => {
         }
     };
 
-    const getStatusBadge = (status) => {
-        const statusClasses = {
-            active: 'bg-green-100 text-green-800',
-            inactive: 'bg-red-100 text-red-800',
-            offline: 'bg-gray-100 text-gray-800',
-            pending: 'bg-yellow-100 text-yellow-800',
-        };
-        return (
-            <span className={`px-3 py-1 text-sm font-medium rounded-full ${statusClasses[status] || 'bg-gray-100 text-gray-800'}`}>
-                {status}
-            </span>
-        );
+    const handleStatusChange = async (newStatus) => {
+        setStatusUpdating(true);
+        const result = await updateCustomerStatus(customer.id, newStatus);
+        if (result.success) {
+            triggerToast('Customer status updated', 'success');
+            fetchCustomerDetails();
+        } else {
+            triggerToast(result.error || 'Failed to update status', 'error');
+        }
+        setStatusUpdating(false);
     };
 
     const getApprovalBadge = (isApproved) => {
@@ -194,7 +195,15 @@ const CustomerView = () => {
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Account Status:</span>
-                                {getStatusBadge(customer.status)}
+                                <div className="flex items-center">
+                                    <Toggle
+                                        checked={customer.status === '1' || customer.status === 1}
+                                        icons={false}
+                                        onChange={() => handleStatusChange(customer.status === '1' || customer.status === 1 ? 0 : 1)}
+                                        disabled={statusUpdating}
+                                        aria-label="Customer Status Toggle"
+                                    />
+                                </div>
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Approval Status:</span>

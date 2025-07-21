@@ -6,8 +6,10 @@ import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import ReactPaginate from 'react-paginate';
-import { FaSearch, FaEye, FaEdit } from 'react-icons/fa';
+import { FaSearch, FaEye } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { updateCustomerStatus } from '../services/locationService';
+import Toggle from 'react-toggle';
 
 const CustomerList = () => {
     const [customers, setCustomers] = useState([]);
@@ -16,6 +18,7 @@ const CustomerList = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [totalItems, setTotalItems] = useState(0);
+    const [statusUpdatingId, setStatusUpdatingId] = useState(null);
     const user = useSelector(selectUser);
     const navigate = useNavigate();
 
@@ -52,18 +55,16 @@ const CustomerList = () => {
         setCurrentPage(selectedItem.selected + 1);
     };
 
-    const getStatusBadge = (status) => {
-        const statusClasses = {
-            active: 'status-badge status-badge-active',
-            inactive: 'status-badge status-badge-inactive',
-            offline: 'status-badge status-badge-offline',
-            pending: 'status-badge status-badge-pending',
-        };
-        return (
-            <span className={`${statusClasses[status] || 'status-badge status-badge-offline'}`}>
-                {status}
-            </span>
-        );
+    const handleStatusChange = async (customerId, newStatus) => {
+        setStatusUpdatingId(customerId);
+        const result = await updateCustomerStatus(customerId, newStatus);
+        if (result.success) {
+            triggerToast('Customer status updated', 'success');
+            fetchCustomers(currentPage, searchTerm);
+        } else {
+            triggerToast(result.error || 'Failed to update status', 'error');
+        }
+        setStatusUpdatingId(null);
     };
 
     const getApprovalBadge = (isApproved) => {
@@ -169,7 +170,15 @@ const CustomerList = () => {
                                         <div className="table-cell-text-secondary">{customer.lat_long}</div>
                                     </td>
                                     <td className="table-cell">
-                                        {getStatusBadge(customer.status)}
+                                        <div className="flex items-center">
+                                            <Toggle
+                                                checked={customer.status === '1' || customer.status === 1}
+                                                icons={false}
+                                                onChange={() => handleStatusChange(customer.id, customer.status === '1' || customer.status === 1 ? 0 : 1)}
+                                                disabled={statusUpdatingId === customer.id}
+                                                aria-label="Customer Status Toggle"
+                                            />
+                                        </div>
                                     </td>
                                     <td className="table-cell">
                                         {getApprovalBadge(customer.is_approved)}
@@ -181,9 +190,6 @@ const CustomerList = () => {
                                                 onClick={() => navigate(`/customers/${customer.id}`)}
                                             >
                                                 <FaEye size={16} />
-                                            </button>
-                                            <button className="action-button action-button-edit">
-                                                <FaEdit size={16} />
                                             </button>
                                         </div>
                                     </td>
