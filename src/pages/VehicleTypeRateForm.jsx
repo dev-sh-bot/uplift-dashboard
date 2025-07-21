@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDropzone } from 'react-dropzone';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { API_URL } from '../utils/constants';
+import { API_URL, ASSETS_URL } from '../utils/constants';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
-import { FaUpload, FaArrowLeft, FaTimes, FaSync } from 'react-icons/fa';
+import { FaUpload, FaTimes, FaSync } from 'react-icons/fa';
 import { useGlobalData } from '../hooks/useGlobalData';
 
 const VehicleTypeRateForm = () => {
@@ -25,7 +25,8 @@ const VehicleTypeRateForm = () => {
         statesLoading,
         loadCountries,
         loadStatesByCountry,
-        loadAllStates
+        loadAllStates,
+        citiesLoading,
     } = useGlobalData();
 
     console.log('VehicleTypeRateForm: Global data state:', {
@@ -48,6 +49,9 @@ const VehicleTypeRateForm = () => {
         await loadAllStates();
     };
 
+    const { id } = useParams();
+    const isEditMode = !!id;
+
     const {
         register,
         handleSubmit,
@@ -58,10 +62,11 @@ const VehicleTypeRateForm = () => {
 
     const selectedCountryId = watch('country_id');
     const selectedStateId = watch('state_id');
+    const [availableCities, setAvailableCities] = useState([]);
+    const [editData, setEditData] = useState(null);
 
     // Get states and cities based on selection
     const availableStates = states; // States are already filtered by country when loaded
-    const availableCities = selectedStateId ? getCitiesByState(selectedStateId) : [];
 
     // Load states when country changes
     useEffect(() => {
@@ -69,6 +74,86 @@ const VehicleTypeRateForm = () => {
             loadStatesByCountry(selectedCountryId);
         }
     }, [selectedCountryId, loadStatesByCountry]);
+
+    // Load cities when state changes
+    useEffect(() => {
+        if (selectedStateId) {
+            getCitiesByState(selectedStateId).then(result => {
+                if (result.success) {
+                    setAvailableCities(result.data);
+                } else {
+                    setAvailableCities([]);
+                }
+            });
+        } else {
+            setAvailableCities([]);
+        }
+    }, [selectedStateId, getCitiesByState]);
+
+    // Fetch existing data if editing
+    useEffect(() => {
+        if (isEditMode) {
+            (async () => {
+                try {
+                    setIsSubmitting(true);
+                    const response = await axios.get(`${API_URL}admin/vehicle-type-rates/${id}`, {
+                        headers: {
+                            Authorization: `Bearer ${user?.token}`,
+                        },
+                    });
+                    const data = response.data;
+                    setEditData(data);
+                    setValue('title', data.title);
+                    setValue('description', data.description);
+                    setValue('base_price', data.base_price);
+                    setValue('price_per_km', data.price_per_km);
+                    setValue('price_per_min', data.price_per_min);
+                    setValue('booking_fee', data.booking_fee);
+                    setValue('ride_charge', data.ride_charge || '');
+                    if (data.icon) {
+                        setIconPreview(`${ASSETS_URL}${data.icon}`);
+                    }
+                } catch {
+                    triggerToast('Failed to fetch vehicle type rate', 'error');
+                } finally {
+                    setIsSubmitting(false);
+                }
+            })();
+        }
+    }, [isEditMode, id, setValue, user]);
+
+    // Set country_id when editData and countries are ready
+    useEffect(() => {
+        if (isEditMode && editData && countries.length > 0) {
+            setValue('country_id', editData.country_id);
+        }
+    }, [isEditMode, editData, countries, setValue]);
+
+    // Set state_id when editData, states, and country_id are ready
+    useEffect(() => {
+        if (
+            isEditMode &&
+            editData &&
+            states.length > 0 &&
+            countries.length > 0 &&
+            editData.country_id === Number(watch('country_id'))
+        ) {
+            setValue('state_id', editData.state_id);
+        }
+    }, [isEditMode, editData, states, countries, setValue, watch]);
+
+    // Set city_id when editData, availableCities, and state_id are ready
+    useEffect(() => {
+        if (
+            isEditMode &&
+            editData &&
+            availableCities.length > 0 &&
+            states.length > 0 &&
+            editData.state_id === Number(watch('state_id'))
+        ) {
+            setValue('city_id', editData.city_id);
+        }
+    }, [isEditMode, editData, availableCities, states, setValue, watch]);
 
     const onDrop = (acceptedFiles) => {
         const file = acceptedFiles[0];
@@ -120,20 +205,30 @@ const VehicleTypeRateForm = () => {
                 formData.append('icon', uploadedIcon);
             }
 
-            const response = await axios.post(`${API_URL}admin/vehicle-type-rates`, formData, {
-                headers: {
-                    Authorization: `Bearer ${user?.token}`,
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            let response;
+            if (isEditMode) {
+                response = await axios.post(`${API_URL}admin/vehicle-type-rates/${id}`, formData, {
+                    headers: {
+                        Authorization: `Bearer ${user?.token}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            } else {
+                response = await axios.post(`${API_URL}admin/vehicle-type-rates`, formData, {
+                    headers: {
+                        Authorization: `Bearer ${user?.token}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            }
 
             if (response.status === 201 || response.status === 200) {
-                triggerToast('Vehicle type rate created successfully', 'success');
+                triggerToast(`Vehicle type rate ${isEditMode ? 'updated' : 'created'} successfully`, 'success');
                 navigate('/vehicle-type-rates');
             }
         } catch (error) {
-            console.error('Error creating vehicle type rate:', error);
-            triggerToast(error.response?.data?.message || 'Failed to create vehicle type rate', 'error');
+            console.error('Error saving vehicle type rate:', error);
+            triggerToast(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} vehicle type rate`, 'error');
         } finally {
             setIsSubmitting(false);
         }
@@ -141,22 +236,6 @@ const VehicleTypeRateForm = () => {
 
     return (
         <div className="page-section">
-            {/* Header */}
-            <div className="page-header mb-6">
-                <div className="flex items-center space-x-4">
-                    <button
-                        onClick={() => navigate('/vehicle-type-rates')}
-                        className="p-2 text-gray-600 dark:text-facebook-textSecondary hover:text-gray-900 dark:hover:text-facebook-text hover:bg-gray-100 dark:hover:bg-facebook-hover rounded-xl transition-colors"
-                    >
-                        <FaArrowLeft size={20} />
-                    </button>
-                    <div>
-                        <h1 className="page-title">Add Vehicle Type Rate</h1>
-                        <p className="page-subtitle mt-1">Create a new vehicle type with pricing information</p>
-                    </div>
-                </div>
-            </div>
-
             {/* Form */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Form */}
@@ -393,9 +472,9 @@ const VehicleTypeRateForm = () => {
                                         required: 'City is required'
                                     })}
                                     className="form-input"
-                                    disabled={!selectedStateId}
+                                    disabled={!selectedStateId || citiesLoading}
                                 >
-                                    <option value="">Select City</option>
+                                    <option value="">{!selectedStateId ? 'Select State First' : citiesLoading ? 'Loading cities...' : 'Select City'}</option>
                                     {availableCities.map((city) => (
                                         <option key={city.id} value={city.id}>
                                             {city.name}
@@ -478,10 +557,10 @@ const VehicleTypeRateForm = () => {
                                             width="16"
                                             colors={['#ffffff', "#ffffff", "#ffffff", "#ffffff", "#ffffff"]}
                                         />
-                                        <span>Creating...</span>
+                                        <span>{isEditMode ? 'Updating...' : 'Creating...'}</span>
                                     </>
                                 ) : (
-                                    <span>Create Vehicle Type Rate</span>
+                                    <span>{isEditMode ? 'Update Vehicle Type Rate' : 'Create Vehicle Type Rate'}</span>
                                 )}
                             </button>
 

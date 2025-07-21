@@ -54,13 +54,6 @@ const VehicleTypeList = () => {
 
 
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(amount);
-    };
-
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -97,7 +90,7 @@ const VehicleTypeList = () => {
                             className="search-input"
                         />
                     </div>
-                    
+
                     <button
                         onClick={() => navigate('/vehicle-type-rates/add')}
                         className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center space-x-2 font-medium"
@@ -120,20 +113,23 @@ const VehicleTypeList = () => {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-facebook-border">
                         <thead className="table-header">
                             <tr>
-                                <th className="table-header-cell">Vehicle Type</th>
-                                <th className="table-header-cell">Pricing</th>
-                                <th className="table-header-cell">Base Price</th>
-                                <th className="table-header-cell">Per KM</th>
-                                <th className="table-header-cell">Per Min</th>
-                                <th className="table-header-cell">Booking Fee</th>
-                                <th className="table-header-cell">Created</th>
-                                <th className="table-header-cell">Actions</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Vehicle Type</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Pricing</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Base Price</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Per KM</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Per Min</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Booking Fee</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Country</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">State</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">City</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Created</th>
+                                <th className="table-header-cell text-gray-700 dark:text-facebook-text">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {vehicleTypes.map((vehicleType) => (
                                 <tr key={vehicleType.id} className="table-row">
-                                    <td className="table-cell">
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">
                                         <div className="flex items-center">
                                             <div className="avatar-container h-12 w-12">
                                                 {vehicleType.icon ? (
@@ -151,10 +147,10 @@ const VehicleTypeList = () => {
                                                 )}
                                             </div>
                                             <div className="ml-4">
-                                                <div className="table-cell-text-primary">
+                                                <div className="table-cell-text-primary text-gray-900 dark:text-facebook-text">
                                                     {vehicleType.title}
                                                 </div>
-                                                <div className="table-cell-text-secondary">
+                                                <div className="table-cell-text-secondary text-gray-500 dark:text-facebook-textSecondary">
                                                     ID: {vehicleType.id}
                                                 </div>
                                                 {vehicleType.description && (
@@ -165,48 +161,33 @@ const VehicleTypeList = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="table-cell">
-                                        <div className="table-cell-text-primary">
-                                            <span className="font-medium">Base:</span> {formatCurrency(vehicleType.base_price)}
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">
+                                        <div className="table-cell-text-primary text-gray-900 dark:text-facebook-text">
+                                            <span className="font-medium">Base:</span> {vehicleType.base_price}
                                         </div>
-                                        <div className="table-cell-text-secondary">
-                                            <span className="font-medium">Per KM:</span> {formatCurrency(vehicleType.per_km)}
+                                        <div className="table-cell-text-secondary text-gray-500 dark:text-facebook-textSecondary">
+                                            <span className="font-medium">Per KM:</span> {vehicleType.price_per_km}
                                         </div>
-                                        <div className="table-cell-text-secondary">
-                                            <span className="font-medium">Per Min:</span> {formatCurrency(vehicleType.per_min)}
-                                        </div>
-                                    </td>
-                                    <td className="table-cell">
-                                        <div className="table-cell-text-primary font-semibold">
-                                            {formatCurrency(vehicleType.base_price)}
+                                        <div className="table-cell-text-secondary text-gray-500 dark:text-facebook-textSecondary">
+                                            <span className="font-medium">Per Min:</span> {vehicleType.price_per_min}
                                         </div>
                                     </td>
-                                    <td className="table-cell">
-                                        <div className="table-cell-text-primary font-semibold">
-                                            {formatCurrency(vehicleType.per_km)}
-                                        </div>
-                                    </td>
-                                    <td className="table-cell">
-                                        <div className="table-cell-text-primary font-semibold">
-                                            {formatCurrency(vehicleType.per_min)}
-                                        </div>
-                                    </td>
-                                    <td className="table-cell">
-                                        <div className="table-cell-text-primary font-semibold">
-                                            {formatCurrency(vehicleType.booking_fee)}
-                                        </div>
-                                    </td>
-                                    <td className="table-cell">
-                                        <div className="table-cell-text-secondary">
-                                            {formatDate(vehicleType.created_at)}
-                                        </div>
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">{vehicleType.base_price}</td>
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">{vehicleType.price_per_km}</td>
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">{vehicleType.price_per_min}</td>
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">{vehicleType.booking_fee}</td>
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">{vehicleType.country_name}</td>
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">{vehicleType.state_name}</td>
+                                    <td className="table-cell text-gray-900 dark:text-facebook-text">{vehicleType.city_name}</td>
+                                    <td className="table-cell text-gray-500 dark:text-facebook-textSecondary">
+                                        {vehicleType.created_at ? formatDate(vehicleType.created_at) : ''}
                                     </td>
                                     <td className="table-cell text-sm font-medium">
                                         <div className="flex space-x-2">
-                                            <button className="action-button action-button-view">
+                                            <button className="action-button action-button-view" onClick={() => navigate(`/vehicle-type-rates/${vehicleType.id}`)}>
                                                 <FaEye size={16} />
                                             </button>
-                                            <button className="action-button action-button-edit">
+                                            <button className="action-button action-button-edit" onClick={() => navigate(`/vehicle-type-rates/edit/${vehicleType.id}`)}>
                                                 <FaEdit size={16} />
                                             </button>
                                         </div>
