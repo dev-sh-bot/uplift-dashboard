@@ -105,6 +105,15 @@ const RiderView = () => {
         setInspectionModalOpen(true);
     };
 
+    const handleSelectActive = async (vehicle, value) => {
+        // Stub: Replace with actual API call to update vehicle active status
+        // Example:
+        // await axios.put(`${API_URL}admin/vehicles/${vehicle.id}/active`, { is_active: value === 'active' }, { headers: { Authorization: `Bearer ${user?.token}` } });
+        triggerToast(`Set active status for vehicle ${vehicle.registration_number} to ${value}`, 'info');
+        // Optionally, refresh data after update
+        // fetchRiderDetails();
+    };
+
     const getStatusBadge = (status) => {
         const statusClasses = {
             active: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
@@ -368,7 +377,6 @@ const RiderView = () => {
                                                 <p className="text-sm text-gray-600 dark:text-facebook-textSecondary">{vehicle.vehicle_type}</p>
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                {getStatusBadge(vehicle.status)}
                                                 <button
                                                     onClick={() => handleInspection(vehicle)}
                                                     className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -377,7 +385,7 @@ const RiderView = () => {
                                                 </button>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-gray-500 dark:text-facebook-textSecondary">Registration:</span>
                                                 <p className="text-gray-900 dark:text-facebook-text">{vehicle.registration_number}</p>
@@ -394,6 +402,45 @@ const RiderView = () => {
                                                 <span className="text-gray-500 dark:text-facebook-textSecondary">Created:</span>
                                                 <p className="text-gray-900 dark:text-facebook-text">{formatDate(vehicle.created_at)}</p>
                                             </div>
+                                            {/* is_active select */}
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-500 dark:text-facebook-textSecondary">Active:</span>
+                                                <select
+                                                    value={vehicle.is_active ? 'active' : 'inactive'}
+                                                    onChange={e => handleSelectActive(vehicle, e.target.value)}
+                                                    className="form-select px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                                >
+                                                    <option value="active">Active</option>
+                                                    <option value="inactive">Inactive</option>
+                                                </select>
+                                            </div>
+                                            {/* is_driving status */}
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-500 dark:text-facebook-textSecondary">Is Driving:</span>
+                                                <span className="text-gray-900 dark:text-facebook-text">{vehicle.is_driving ? 'Yes' : 'No'}</span>
+                                            </div>
+                                            {/* Approval info */}
+                                            <div className="flex items-center justify-between col-span-2 lg:col-span-1">
+                                                <span className="text-gray-500 dark:text-facebook-textSecondary">Approval:</span>
+                                                {vehicle.approved_at && vehicle.approved_by ? (
+                                                    <span className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 px-2 py-1 rounded-full text-xs font-semibold">Approved</span>
+                                                ) : (
+                                                    <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 px-2 py-1 rounded-full text-xs font-semibold">Pending</span>
+                                                )}
+                                            </div>
+                                            {/* Only show these if values exist */}
+                                            {vehicle.approved_at && vehicle.approved_by && (
+                                                <>
+                                                    <div className="flex flex-col col-span-2 lg:col-span-1">
+                                                        <span className="text-gray-500 dark:text-facebook-textSecondary">Approved At:</span>
+                                                        <span className="text-gray-900 dark:text-facebook-text">{formatDate(vehicle.approved_at)}</span>
+                                                    </div>
+                                                    <div className="flex flex-col col-span-2 lg:col-span-1">
+                                                        <span className="text-gray-500 dark:text-facebook-textSecondary">Approved By:</span>
+                                                        <span className="text-gray-900 dark:text-facebook-text">{vehicle.approved_by}</span>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

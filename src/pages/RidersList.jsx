@@ -6,7 +6,7 @@ import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import ReactPaginate from 'react-paginate';
-import { FaSearch, FaEye, FaEdit, FaCog } from 'react-icons/fa';
+import { FaSearch, FaEye, FaCog } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import StatusUpdateModal from '../components/StatusUpdateModal';
 
@@ -234,9 +234,6 @@ const RidersList = () => {
                                                 title="Update Status"
                                             >
                                                 <FaCog size={16} />
-                                            </button>
-                                            <button className="action-button action-button-edit">
-                                                <FaEdit size={16} />
                                             </button>
                                         </div>
                                     </td>
