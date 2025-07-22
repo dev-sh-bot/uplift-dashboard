@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import PropTypes from 'prop-types';
-import { FaTimes, FaCheckCircle, FaTimesCircle, FaCalendarAlt, FaCar, FaEye, FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaTimes, FaCheckCircle, FaTimesCircle, FaCalendarAlt, FaCar, FaChevronDown, FaCheck, FaTimes as FaTimesIcon, FaSpinner } from 'react-icons/fa';
 import axios from 'axios';
 import { API_URL, ASSETS_URL } from '../utils/constants';
 import { ColorRing } from 'react-loader-spinner';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/authSlice';
+import { triggerToast } from '../utils/helper';
 
 const inspectionFields = [
     { key: 'headlights', label: 'Headlights' },
@@ -30,9 +31,8 @@ const InspectionModal = ({
     const [inspectionData, setInspectionData] = useState([]);
     const [selectedInspectionIndex, setSelectedInspectionIndex] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-    const [allImages, setAllImages] = useState([]);
+    // Removed image popup modal state
+    const [imageStatuses, setImageStatuses] = useState({}); // { [imageUrl]: { status, loading } }
 
     useEffect(() => {
         if (isOpen && vehicle) {
@@ -46,79 +46,73 @@ const InspectionModal = ({
                     const inspections = res.data.data || [];
                     setInspectionData(inspections);
                     setSelectedInspectionIndex(0); // Reset to first inspection
-                    
-                    // Prepare all images for lightbox
-                    const images = [];
-                    inspections.forEach((inspection, inspectionIndex) => {
-                        inspectionFields.forEach(field => {
-                            let fieldImages = [];
-                            try {
-                                fieldImages = inspection[field.key] ? JSON.parse(inspection[field.key]) : [];
-                            } catch {
-                                fieldImages = [];
-                            }
-                            fieldImages.forEach((img, imgIndex) => {
-                                images.push({
-                                    src: `${ASSETS_URL}${img}`,
-                                    alt: `${field.label} - ${inspectionIndex + 1}`,
-                                    field: field.label,
-                                    inspectionIndex,
-                                    originalIndex: imgIndex
-                                });
-                            });
-                        });
-                    });
-                    setAllImages(images);
                 })
                 .catch(() => {
                     setInspectionData([]);
                     setSelectedInspectionIndex(0);
-                    setAllImages([]);
                 })
                 .finally(() => setLoading(false));
         } else {
             setInspectionData([]);
             setSelectedInspectionIndex(0);
-            setAllImages([]);
         }
     }, [isOpen, vehicle]);
 
+    // Fetch image statuses when inspection data changes
+    useEffect(() => {
+        if (inspectionData.length > 0) {
+            const newStatuses = {};
+            inspectionData.forEach((inspection) => {
+                inspectionFields.forEach(field => {
+                    let fieldImages = [];
+                    try {
+                        fieldImages = inspection[field.key] ? JSON.parse(inspection[field.key]) : [];
+                    } catch {
+                        fieldImages = [];
+                    }
+                    fieldImages.forEach((img) => {
+                        // Default to pending if not already set
+                        if (!newStatuses[img]) {
+                            newStatuses[img] = { status: 'pending', loading: false };
+                        }
+                    });
+                });
+            });
+            setImageStatuses(newStatuses);
+        }
+    }, [inspectionData]);
+
+    const handleApproveReject = async (img, action) => {
+        setImageStatuses(prev => ({ ...prev, [img]: { ...prev[img], loading: true } }));
+        try {
+            // Use image name or a unique identifier as image_id
+            const imageId = encodeURIComponent(img);
+            const response = await axios.post(`${API_URL}admin/vehicles/approve-inspection/${imageId}`, { status: action }, {
+                headers: { Authorization: `Bearer ${user?.token}` },
+            });
+            if (response.status === 200) {
+                setImageStatuses(prev => ({ ...prev, [img]: { status: action, loading: false } }));
+            } else {
+                setImageStatuses(prev => ({ ...prev, [img]: { ...prev[img], loading: false } }));
+                triggerToast('Failed to update status', 'error');
+            }
+        } catch {
+            setImageStatuses(prev => ({ ...prev, [img]: { ...prev[img], loading: false } }));
+            triggerToast('Failed to update status', 'error');
+        }
+    };
+
+    const getImageStatusBadge = (status) => {
+        if (status === 'approved') return <span className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 px-2 py-1 rounded-full text-xs font-semibold">Approved</span>;
+        if (status === 'rejected') return <span className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 px-2 py-1 rounded-full text-xs font-semibold">Rejected</span>;
+        return <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 px-2 py-1 rounded-full text-xs font-semibold">Pending</span>;
+    };
+
     const handleClose = () => {
-        setSelectedImage(null);
-        setSelectedImageIndex(0);
         onClose();
     };
 
-    const openImageLightbox = (imageSrc, fieldLabel, inspectionIndex, imgIndex) => {
-        console.log('Opening lightbox:', { imageSrc, fieldLabel, inspectionIndex, imgIndex });
-        console.log('All images:', allImages);
-        
-        // Simple approach: just set the selected image directly
-        setSelectedImage(imageSrc);
-        
-        // Find the image index in allImages array
-        const foundIndex = allImages.findIndex(img => img.src === imageSrc);
-        setSelectedImageIndex(foundIndex >= 0 ? foundIndex : 0);
-    };
-
-    const closeImageLightbox = () => {
-        console.log('Closing lightbox');
-        setSelectedImage(null);
-        setSelectedImageIndex(0);
-    };
-
-    const navigateImage = (direction) => {
-        if (allImages.length === 0) return;
-        
-        let newIndex;
-        if (direction === 'next') {
-            newIndex = (selectedImageIndex + 1) % allImages.length;
-        } else {
-            newIndex = selectedImageIndex === 0 ? allImages.length - 1 : selectedImageIndex - 1;
-        }
-        setSelectedImageIndex(newIndex);
-        setSelectedImage(allImages[newIndex].src);
-    };
+    // Removed image lightbox handlers
 
     const getStatusIcon = (status) => {
         switch (status) {
@@ -146,7 +140,7 @@ const InspectionModal = ({
         const statusFields = inspectionFields.map(field => inspection[`is_${field.key}`]);
         const passedCount = statusFields.filter(status => status === 1).length;
         const failedCount = statusFields.filter(status => status === 0).length;
-        
+
         if (failedCount > 0) return { status: 'failed', text: 'Failed', color: 'text-red-600' };
         if (passedCount === statusFields.length) return { status: 'passed', text: 'Passed', color: 'text-green-600' };
         return { status: 'pending', text: 'Pending', color: 'text-yellow-600' };
@@ -160,8 +154,8 @@ const InspectionModal = ({
                 isOpen={isOpen}
                 onRequestClose={handleClose}
                 contentLabel="Vehicle Inspection"
-                className="fixed inset-0 flex flex-col items-stretch justify-center z-50"
-                overlayClassName="fixed inset-0 bg-black bg-opacity-50"
+                className="fixed inset-0 flex flex-col items-stretch justify-center z-40"
+                overlayClassName="fixed inset-0 bg-black bg-opacity-50 z-30"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between py-2 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -176,7 +170,7 @@ const InspectionModal = ({
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-6 bg-white dark:bg-gray-800 max-h-[80vh] overflow-y-auto">
+                <div className="p-4 space-y-6 bg-white dark:bg-gray-800 max-h-[80vh] overflow-y-auto max-w-[90vw] w-full mx-auto">
                     {/* Vehicle Info */}
                     {vehicle && (
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
@@ -251,7 +245,7 @@ const InspectionModal = ({
                                 </div>
                             )}
                         </div>
-                        
+
                         {loading ? (
                             <div className="flex justify-center items-center h-32">
                                 <ColorRing visible={true} height="40" width="40" colors={['#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6', '#3B82F6']} />
@@ -268,21 +262,39 @@ const InspectionModal = ({
                                     const status = currentInspection[`is_${field.key}`];
                                     return (
                                         <div key={field.key} className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 flex flex-col gap-2">
-                                            <div className="flex items-center gap-2 mb-1">
+                                            <div className="flex items-center gap-2 mb-1 w-full">
                                                 {getStatusIcon(status)}
                                                 <span className="font-medium text-gray-900 dark:text-white">{field.label}</span>
                                             </div>
-                                            <div className="flex gap-2 flex-wrap">
+                                            <div className="flex gap-4 flex-wrap">
                                                 {images.length > 0 ? images.map((img, idx) => (
-                                                    <div key={idx} className="relative group">
+                                                    <div key={idx} className="relative w-full group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow p-2 flex flex-col items-center w-36">
                                                         <img
                                                             src={`${ASSETS_URL}${img}`}
                                                             alt={field.label}
-                                                            className="w-28 h-20 object-cover rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:opacity-80 transition-opacity"
-                                                            onClick={() => openImageLightbox(`${ASSETS_URL}${img}`, field.label, selectedInspectionIndex, idx)}
+                                                            className="w-28 h-20 object-cover rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:opacity-80 transition-opacity mb-2"
+                                                            onClick={() => window.open(`${ASSETS_URL}${img}`, '_blank')}
                                                         />
-                                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded flex items-center justify-center">
-                                                            <FaEye className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-lg" />
+                                                        <div className="flex flex-col items-center gap-1 w-full">
+                                                            {getImageStatusBadge(imageStatuses[img]?.status)}
+                                                            <div className="flex gap-2 mt-1">
+                                                                <button
+                                                                    className={`flex items-center gap-1 px-2 py-1 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                                    disabled={imageStatuses[img]?.loading || imageStatuses[img]?.status === 'approved'}
+                                                                    onClick={() => handleApproveReject(img, 'approved')}
+                                                                >
+                                                                    {imageStatuses[img]?.loading && imageStatuses[img]?.status !== 'rejected' ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                                                                    Approve
+                                                                </button>
+                                                                <button
+                                                                    className={`flex items-center gap-1 px-2 py-1 rounded bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                                    disabled={imageStatuses[img]?.loading || imageStatuses[img]?.status === 'rejected'}
+                                                                    onClick={() => handleApproveReject(img, 'rejected')}
+                                                                >
+                                                                    {imageStatuses[img]?.loading && imageStatuses[img]?.status !== 'approved' ? <FaSpinner className="animate-spin" /> : <FaTimesIcon />}
+                                                                    Reject
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 )) : (
@@ -310,7 +322,6 @@ const InspectionModal = ({
                                     const passedCount = statusFields.filter(status => status === 1).length;
                                     const failedCount = statusFields.filter(status => status === 0).length;
                                     const pendingCount = statusFields.filter(status => status === null || status === undefined).length;
-                                    
                                     return (
                                         <>
                                             <div className="text-center">
@@ -331,8 +342,6 @@ const InspectionModal = ({
                             </div>
                         </div>
                     )}
-
-                    {/* (Optional) Add inspection status/notes form here if needed */}
                 </div>
 
                 {/* Footer */}
@@ -346,66 +355,6 @@ const InspectionModal = ({
                     </button>
                 </div>
             </Modal>
-
-            {/* Image Lightbox */}
-            {selectedImage && (
-                <div 
-                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-90"
-                    onClick={closeImageLightbox}
-                >
-                    <div 
-                        className="relative max-w-4xl max-h-[90vh] p-4"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Close button */}
-                        <button
-                            onClick={closeImageLightbox}
-                            className="absolute top-2 right-2 z-10 text-white hover:text-gray-300 transition-colors bg-black bg-opacity-50 rounded-full p-2"
-                        >
-                            <FaTimes size={20} />
-                        </button>
-
-                        {/* Navigation buttons */}
-                        {allImages.length > 1 && (
-                            <>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        navigateImage('prev');
-                                    }}
-                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 text-white hover:text-gray-300 transition-colors bg-black bg-opacity-50 rounded-full p-2"
-                                >
-                                    <FaChevronLeft size={20} />
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        navigateImage('next');
-                                    }}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 text-white hover:text-gray-300 transition-colors bg-black bg-opacity-50 rounded-full p-2"
-                                >
-                                    <FaChevronRight size={20} />
-                                </button>
-                            </>
-                        )}
-
-                        {/* Image */}
-                        <img
-                            src={selectedImage}
-                            alt={allImages[selectedImageIndex]?.alt || 'Inspection Image'}
-                            className="max-w-full max-h-full object-contain rounded-lg"
-                            onClick={(e) => e.stopPropagation()}
-                        />
-
-                        {/* Image info */}
-                        {allImages.length > 1 && (
-                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-50 px-4 py-2 rounded-lg text-sm">
-                                {selectedImageIndex + 1} of {allImages.length} - {allImages[selectedImageIndex]?.field}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
         </>
     );
 };
@@ -417,4 +366,4 @@ InspectionModal.propTypes = {
     isProcessing: PropTypes.bool
 };
 
-export default InspectionModal; 
+export default InspectionModal;

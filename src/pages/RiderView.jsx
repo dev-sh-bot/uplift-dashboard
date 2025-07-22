@@ -9,6 +9,7 @@ import { triggerToast } from '../utils/helper';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaCheckCircle, FaTimesCircle, FaCog, FaWallet, FaCar, FaIdCard, FaEye } from 'react-icons/fa';
 import StatusUpdateModal from '../components/StatusUpdateModal';
 import InspectionModal from '../components/InspectionModal';
+import VehicleDetailModal from '../components/VehicleDetailModal';
 
 const RiderView = () => {
     const [rider, setRider] = useState(null);
@@ -19,6 +20,8 @@ const RiderView = () => {
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [inspectionModalOpen, setInspectionModalOpen] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState(null);
+    const [vehicleDetailModalOpen, setVehicleDetailModalOpen] = useState(false);
+    const [vehicleDetailModalVehicle, setVehicleDetailModalVehicle] = useState(null);
     const { id } = useParams();
     const navigate = useNavigate();
     const user = useSelector(selectUser);
@@ -105,6 +108,11 @@ const RiderView = () => {
         setInspectionModalOpen(true);
     };
 
+    const handleVehicleDetail = (vehicle) => {
+        setVehicleDetailModalVehicle(vehicle);
+        setVehicleDetailModalOpen(true);
+    };
+
     const handleSelectActive = async (vehicle, value) => {
         // Stub: Replace with actual API call to update vehicle active status
         // Example:
@@ -166,7 +174,7 @@ const RiderView = () => {
     let licensePhotos = [];
     try {
         licensePhotos = rider.license_photo ? JSON.parse(rider.license_photo) : [];
-    } catch (e) {
+    } catch {
         licensePhotos = [];
     }
     const licenseFront = licensePhotos[0];
@@ -201,10 +209,6 @@ const RiderView = () => {
                             <p className="text-gray-600 dark:text-facebook-textSecondary mb-1">@{rider.username}</p>
                             <p className="text-sm text-gray-500 dark:text-facebook-textMuted mb-3">ID: {rider.id}</p>
 
-                            <div className="flex justify-center mb-3">
-                                {getStatusBadge(rider.status)}
-                            </div>
-
                             <div className="space-y-2 text-sm">
                                 <div className="flex items-center justify-center space-x-2">
                                     <div className={`w-3 h-3 rounded-full ${rider.online_status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
@@ -238,15 +242,8 @@ const RiderView = () => {
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Status:</span>
-                                {getStatusBadge(rider.status)}
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Online:</span>
-                                <div className="flex items-center space-x-2">
-                                    <div className={`w-3 h-3 rounded-full ${rider.online_status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                                    <span className="text-gray-900 dark:text-facebook-text capitalize">{rider.online_status}</span>
-                                </div>
+                                <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Online Status:</span>
+                                {getStatusBadge(rider.online_status)}
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-gray-500 dark:text-facebook-textSecondary">Approval:</span>
@@ -383,26 +380,19 @@ const RiderView = () => {
                                                 >
                                                     Inspection
                                                 </button>
+                                                <button
+                                                    onClick={() => handleVehicleDetail(vehicle)}
+                                                    className="px-3 py-1 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                                                >
+                                                    View Details
+                                                </button>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-gray-500 dark:text-facebook-textSecondary">Registration:</span>
                                                 <p className="text-gray-900 dark:text-facebook-text">{vehicle.registration_number}</p>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-gray-500 dark:text-facebook-textSecondary">Color:</span>
-                                                <p className="text-gray-900 dark:text-facebook-text">{vehicle.color}</p>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-gray-500 dark:text-facebook-textSecondary">Insurance:</span>
-                                                <p className="text-gray-900 dark:text-facebook-text">{vehicle.insurance_validity || 'Not provided'}</p>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-gray-500 dark:text-facebook-textSecondary">Created:</span>
-                                                <p className="text-gray-900 dark:text-facebook-text">{formatDate(vehicle.created_at)}</p>
-                                            </div>
-                                            {/* is_active select */}
                                             <div className="flex items-center justify-between">
                                                 <span className="text-gray-500 dark:text-facebook-textSecondary">Active:</span>
                                                 <select
@@ -414,13 +404,7 @@ const RiderView = () => {
                                                     <option value="inactive">Inactive</option>
                                                 </select>
                                             </div>
-                                            {/* is_driving status */}
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-gray-500 dark:text-facebook-textSecondary">Is Driving:</span>
-                                                <span className="text-gray-900 dark:text-facebook-text">{vehicle.is_driving ? 'Yes' : 'No'}</span>
-                                            </div>
-                                            {/* Approval info */}
-                                            <div className="flex items-center justify-between col-span-2 lg:col-span-1">
+                                            <div className="flex items-center justify-between col-span-2">
                                                 <span className="text-gray-500 dark:text-facebook-textSecondary">Approval:</span>
                                                 {vehicle.approved_at && vehicle.approved_by ? (
                                                     <span className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 px-2 py-1 rounded-full text-xs font-semibold">Approved</span>
@@ -428,19 +412,6 @@ const RiderView = () => {
                                                     <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 px-2 py-1 rounded-full text-xs font-semibold">Pending</span>
                                                 )}
                                             </div>
-                                            {/* Only show these if values exist */}
-                                            {vehicle.approved_at && vehicle.approved_by && (
-                                                <>
-                                                    <div className="flex flex-col col-span-2 lg:col-span-1">
-                                                        <span className="text-gray-500 dark:text-facebook-textSecondary">Approved At:</span>
-                                                        <span className="text-gray-900 dark:text-facebook-text">{formatDate(vehicle.approved_at)}</span>
-                                                    </div>
-                                                    <div className="flex flex-col col-span-2 lg:col-span-1">
-                                                        <span className="text-gray-500 dark:text-facebook-textSecondary">Approved By:</span>
-                                                        <span className="text-gray-900 dark:text-facebook-text">{vehicle.approved_by}</span>
-                                                    </div>
-                                                </>
-                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -588,6 +559,13 @@ const RiderView = () => {
                 isOpen={inspectionModalOpen}
                 onClose={() => setInspectionModalOpen(false)}
                 vehicle={selectedVehicle}
+            />
+
+            {/* Vehicle Detail Modal */}
+            <VehicleDetailModal
+                isOpen={vehicleDetailModalOpen}
+                onClose={() => setVehicleDetailModalOpen(false)}
+                vehicle={vehicleDetailModalVehicle}
             />
         </div>
     );
