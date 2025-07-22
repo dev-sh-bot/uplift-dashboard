@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 import { API_URL } from '../utils/constants';
 import { useSelector } from 'react-redux';
@@ -18,7 +18,7 @@ const daysOfWeek = [
   { value: 'sun', label: 'Sunday' },
 ];
 
-const SurgeRateCreate = () => {
+const SurgeRateForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [vehicleTypes, setVehicleTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +29,7 @@ const SurgeRateCreate = () => {
     register,
     handleSubmit,
     formState: { errors },
+    control,
   } = useForm();
 
   useEffect(() => {
@@ -159,15 +160,38 @@ const SurgeRateCreate = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
                     Day of Week <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    {...register('day_of_week', { required: 'Day of week is required' })}
-                    className="form-input"
-                  >
-                    <option value="">Select Day</option>
-                    {daysOfWeek.map((d) => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
-                    ))}
-                  </select>
+                  <Controller
+                    name="day_of_week"
+                    control={control}
+                    rules={{
+                      validate: value => (value && value.length > 0) || 'At least one day is required',
+                    }}
+                    render={({ field }) => (
+                      <div className="flex flex-wrap gap-3">
+                        {daysOfWeek.map((d) => (
+                          <label key={d.value} className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-facebook-textSecondary">
+                            <input
+                              type="checkbox"
+                              value={d.value}
+                              checked={field.value?.includes(d.value) || false}
+                              onChange={e => {
+                                const checked = e.target.checked;
+                                let newValue = Array.isArray(field.value) ? [...field.value] : [];
+                                if (checked) {
+                                  newValue.push(d.value);
+                                } else {
+                                  newValue = newValue.filter(val => val !== d.value);
+                                }
+                                field.onChange(newValue);
+                              }}
+                              className="form-checkbox rounded text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-facebook-border"
+                            />
+                            {d.label}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  />
                   {errors.day_of_week && (
                     <p className="text-red-500 text-sm mt-1">{errors.day_of_week.message}</p>
                   )}
@@ -226,4 +250,4 @@ const SurgeRateCreate = () => {
   );
 };
 
-export default SurgeRateCreate; 
+export default SurgeRateForm; 

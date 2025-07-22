@@ -23,7 +23,7 @@ const CustomerView = React.lazy(() => import("./pages/CustomerView"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const VehicleTypeRateView = React.lazy(() => import("./pages/VehicleTypeRateView"));
 const SurgeRateList = React.lazy(() => import('./pages/SurgeRateList'));
-const SurgeRateCreate = React.lazy(() => import('./pages/SurgeRateCreate'));
+const SurgeRateForm = React.lazy(() => import('./pages/SurgeRateForm'));
 const SurgeRateView = React.lazy(() => import('./pages/SurgeRateView'));
 
 const router = createBrowserRouter([
@@ -183,7 +183,7 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <Layout>
           <React.Suspense>
-            <SurgeRateCreate />
+            <SurgeRateForm />
           </React.Suspense>
         </Layout>
       </ProtectedRoute>
