@@ -25,6 +25,7 @@ const VehicleTypeRateView = React.lazy(() => import("./pages/VehicleTypeRateView
 const SurgeRateList = React.lazy(() => import('./pages/SurgeRateList'));
 const SurgeRateForm = React.lazy(() => import('./pages/SurgeRateForm'));
 const SurgeRateView = React.lazy(() => import('./pages/SurgeRateView'));
+const GeneralAnnouncementForm = React.lazy(() => import('./pages/GeneralAnnouncementForm'));
 
 const router = createBrowserRouter([
   {
@@ -205,6 +206,21 @@ const router = createBrowserRouter([
     ),
     handle: {
       title: "View Surge Rate"
+    }
+  },
+  {
+    path: "/general-announcements/create",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <GeneralAnnouncementForm />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "Create General Announcement"
     }
   },
   {
