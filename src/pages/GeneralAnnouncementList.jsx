@@ -6,6 +6,7 @@ import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import { FaPlus, FaSearch, FaPaperclip } from 'react-icons/fa';
+import { FaImage } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 const GeneralAnnouncementList = () => {
@@ -118,7 +119,12 @@ const GeneralAnnouncementList = () => {
                                                     className="w-16 h-16 object-cover rounded shadow border border-gray-200 dark:border-gray-700 hover:scale-105 transition-transform"
                                                 />
                                             </a>
-                                        ) : '-'}
+                                        ) : (
+                                            <div className="w-16 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 text-xs flex-col">
+                                                <FaImage className="mb-1 text-lg" />
+                                                No Image
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="table-cell text-gray-900 dark:text-facebook-text font-medium max-w-xs truncate">{item.title}</td>
                                     <td className="table-cell text-gray-900 dark:text-facebook-text max-w-xs truncate">{item.message}</td>

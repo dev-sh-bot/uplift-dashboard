@@ -19,7 +19,6 @@ const audiences = [
 const statuses = [
   { value: 'draft', label: 'Draft' },
   { value: 'approved', label: 'Approved' },
-  { value: 'pending', label: 'Pending' },
 ];
 
 const GeneralAnnouncementForm = () => {
@@ -34,8 +33,10 @@ const GeneralAnnouncementForm = () => {
     handleSubmit,
     formState: { errors },
     setValue,
-    // reset,
+    watch,
   } = useForm();
+
+  const statusValue = watch('status');
 
   // Dropzone for attachment
   const onDropAttachment = useCallback((acceptedFiles) => {
@@ -91,7 +92,9 @@ const GeneralAnnouncementForm = () => {
       formData.append('priority', data.priority);
       formData.append('audience', data.audience);
       formData.append('status', data.status);
-      formData.append('scheduled_at', data.scheduled_at);
+      if (statusValue === 'approved') {
+        formData.append('scheduled_at', data.scheduled_at);
+      }
 
       const response = await axios.post(`${API_URL}admin/general-announcement`, formData, {
         headers: {
@@ -243,17 +246,19 @@ const GeneralAnnouncementForm = () => {
                   {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
-                  Scheduled At <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  {...register('scheduled_at', { required: 'Scheduled date/time is required' })}
-                  className="form-input"
-                />
-                {errors.scheduled_at && <p className="text-red-500 text-sm mt-1">{errors.scheduled_at.message}</p>}
-              </div>
+              {statusValue === 'approved' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
+                    Scheduled At <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="datetime-local"
+                    {...register('scheduled_at', { required: statusValue === 'approved' ? 'Scheduled date/time is required' : false })}
+                    className="form-input"
+                  />
+                  {errors.scheduled_at && <p className="text-red-500 text-sm mt-1">{errors.scheduled_at.message}</p>}
+                </div>
+              )}
               {/* Form Actions for mobile */}
               <div className="flex lg:hidden justify-end gap-2">
                 <button
