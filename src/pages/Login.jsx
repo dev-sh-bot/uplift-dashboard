@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { addUser } from '../reducers/authSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { ColorRing } from 'react-loader-spinner';
-import LOGO from '../assets/images/logo.webp';
+import LOGO from '../assets/images/icons.png';
 import { MdKeyboardArrowRight, MdVisibility, MdVisibilityOff } from "react-icons/md";
 import { triggerToast } from '../utils/helper';
 
@@ -77,7 +77,7 @@ const Login = () => {
                                 className="w-full py-2 px-4 mt-2 text-sm bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
                                 placeholder="***********"
                             />
-                            <button type="button" onClick={togglePasswordVisibility} className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500">
+                            <button type="button" onClick={togglePasswordVisibility} className="absolute top-7 right-3 -translate-y-1/2 text-gray-500">
                                 {showPassword ? <MdVisibilityOff size="1.3em" /> : <MdVisibility size="1.3em" />}
                             </button>
                         </div>

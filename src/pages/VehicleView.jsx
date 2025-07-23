@@ -87,9 +87,6 @@ const VehicleView = () => {
 
   return (
     <div className="page-section">
-      <button onClick={() => navigate(-1)} className="mb-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2">
-        <FaArrowLeft /> Back
-      </button>
       <div className="page-card p-0 flex flex-col md:flex-row overflow-hidden">
         {/* Info Section */}
         <div className="flex-1 p-8 flex flex-col justify-between">

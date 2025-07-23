@@ -20,7 +20,7 @@ import {
 import { LuLayoutDashboard, LuLogOut } from "react-icons/lu"
 
 // Your logo asset
-import logo from "../assets/images/logo.webp"
+import logo from "../assets/images/icons.png"
 
 const menuItems = [
   {
@@ -76,7 +76,7 @@ const menuItems = [
   //     { label: "Sale Return Voucher", path: "/sale-return-voucher" },
   //   ],
   // },
-  
+
 ]
 
 function SidebarItem({ item, isSidebarExpanded, onExpand }) {
@@ -209,12 +209,12 @@ export default function Sidebar({ isExpanded, setIsExpanded }) {
           h-20 bg-white dark:bg-facebook-card shadow-sm dark:shadow-gray-900/20
         `}
       >
-        <div className="w-10 h-10 p-1 bg-[#1C70B9] rounded-full">
-          <img src={logo} alt="Logo" className="w-full h-full object-contain" />
+        <div className="w-10 h-10 p-1 rounded-full">
+          <img src={logo} alt="Logo" className="w-10 object-contain" />
         </div>
         {isExpanded && (
           <div className="flex-1 flex items-center justify-center gap-3">
-            <img src={logo} alt="Logo" className="w-24 h-24 object-contain" />
+            <h1 className="text-2xl font-bold text-primary-600  whitespace-nowrap text-inherit overflow-hidden">UPLIFFTING</h1>
           </div>
         )}
       </div>
