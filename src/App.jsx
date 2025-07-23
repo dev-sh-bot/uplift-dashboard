@@ -27,6 +27,8 @@ const SurgeRateForm = React.lazy(() => import('./pages/SurgeRateForm'));
 const SurgeRateView = React.lazy(() => import('./pages/SurgeRateView'));
 const GeneralAnnouncementForm = React.lazy(() => import('./pages/GeneralAnnouncementForm'));
 const GeneralAnnouncementList = React.lazy(() => import('./pages/GeneralAnnouncementList'));
+const VehicleList = React.lazy(() => import('./pages/VehicleList'));
+const VehicleView = React.lazy(() => import('./pages/VehicleView'));
 
 const router = createBrowserRouter([
   {
@@ -102,6 +104,36 @@ const router = createBrowserRouter([
     ),
     handle: {
       title: "Customer Details"
+    }
+  },
+  {
+    path: "/vehicles",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <VehicleList />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "Vehicles"
+    }
+  },
+  {
+    path: "/vehicles/:id",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <VehicleView />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "Vehicle Details"
     }
   },
   {
@@ -225,7 +257,7 @@ const router = createBrowserRouter([
     }
   },
   {
-    path: "/general-announcements/create",
+    path: "/general-announcement/create",
     element: (
       <ProtectedRoute>
         <Layout>
