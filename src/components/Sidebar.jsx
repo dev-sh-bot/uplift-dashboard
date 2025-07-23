@@ -15,6 +15,7 @@ import {
   FaUsers,
   FaCog,
   FaBolt,
+  FaBullhorn,
 } from "react-icons/fa"
 import { LuLayoutDashboard, LuLogOut } from "react-icons/lu"
 
@@ -46,6 +47,11 @@ const menuItems = [
     title: "Surge Rates",
     path: "/surge-rates",
     icon: <FaBolt />,
+  },
+  {
+    title: "General Announcements",
+    path: "/general-announcements",
+    icon: <FaBullhorn />,
   },
   {
     title: "Settings",
