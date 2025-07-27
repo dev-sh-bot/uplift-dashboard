@@ -50,34 +50,34 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8 flex flex-col items-center">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-facebook-dark">
+            <div className="w-full max-w-md bg-white dark:bg-facebook-card rounded-lg shadow-md p-8 flex flex-col items-center">
                 <img src={LOGO} className="w-28 mb-6" alt="Logo" />
-                <h4 className="text-gray-900 font-semibold text-2xl mb-8">Sign In</h4>
-                <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
+                <h4 className="text-gray-900 dark:text-facebook-text font-semibold text-2xl mb-8">Sign In</h4>
+                <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-3">
                     <label htmlFor="email" className="block">
-                        <span className="text-gray-700 font-medium text-sm">Email</span>
+                        <span className="text-gray-700 dark:text-facebook-textSecondary font-medium text-sm">Email</span>
                         <input
                             type="email"
                             id="email"
                             {...register('email', { required: 'Email is required', })}
-                            className="w-full py-2 px-4 mt-2 text-sm bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            className="w-full py-2 px-4 mt-2 text-sm bg-gray-50 dark:bg-facebook-surface border border-gray-300 dark:border-facebook-border rounded focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-900 dark:text-facebook-text placeholder-gray-500 dark:placeholder-facebook-textMuted"
                             placeholder="Enter Email"
                         />
                         {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email?.message}</p>}
                     </label>
 
                     <label htmlFor="Password" className="block">
-                        <span className="text-gray-700 font-medium text-sm">Password</span>
+                        <span className="text-gray-700 dark:text-facebook-textSecondary font-medium text-sm">Password</span>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
                                 id="Password"
                                 {...register('password', { required: 'Password is required', })}
-                                className="w-full py-2 px-4 mt-2 text-sm bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                className="w-full py-2 px-4 mt-2 text-sm bg-gray-50 dark:bg-facebook-surface border border-gray-300 dark:border-facebook-border rounded focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-900 dark:text-facebook-text placeholder-gray-500 dark:placeholder-facebook-textMuted"
                                 placeholder="***********"
                             />
-                            <button type="button" onClick={togglePasswordVisibility} className="absolute top-7 right-3 -translate-y-1/2 text-gray-500">
+                            <button type="button" onClick={togglePasswordVisibility} className="absolute top-7 right-3 -translate-y-1/2 text-gray-500 dark:text-facebook-textMuted">
                                 {showPassword ? <MdVisibilityOff size="1.3em" /> : <MdVisibility size="1.3em" />}
                             </button>
                         </div>
@@ -85,10 +85,10 @@ const Login = () => {
                     </label>
 
                     <div className="text-right">
-                        <Link to="/forget-password" className="text-blue-600 text-xs hover:underline">Forget Password?</Link>
+                        <Link to="/forget-password" className="text-blue-600 dark:text-blue-400 text-xs hover:underline">Forget Password?</Link>
                     </div>
 
-                    <button type="submit" disabled={isSubmitting} className="w-full py-2 mt-2 text-base font-medium bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-60 flex items-center justify-center">
+                    <button type="submit" disabled={isSubmitting} className="w-full py-2 text-base font-medium bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-60 flex items-center justify-center">
                         {isSubmitting ?
                             <ColorRing
                                 visible={true}
@@ -98,7 +98,7 @@ const Login = () => {
                                 wrapperStyle={{ margin: "0 auto" }}
                             />
                             :
-                            <>Sign In <MdKeyboardArrowRight className="ml-2 text-lg" /></>
+                            <>Sign In <MdKeyboardArrowRight className="text-lg" /></>
                         }
                     </button>
                 </form>
