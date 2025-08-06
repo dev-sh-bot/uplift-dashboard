@@ -29,6 +29,8 @@ const GeneralAnnouncementForm = React.lazy(() => import('./pages/GeneralAnnounce
 const GeneralAnnouncementList = React.lazy(() => import('./pages/GeneralAnnouncementList'));
 const VehicleList = React.lazy(() => import('./pages/VehicleList'));
 const VehicleView = React.lazy(() => import('./pages/VehicleView'));
+const VehicleTypeList = React.lazy(() => import('./pages/VehicleTypeList'));
+const VehicleTypeForm = React.lazy(() => import('./pages/VehicleTypeForm'));
 
 const router = createBrowserRouter([
   {
@@ -269,6 +271,36 @@ const router = createBrowserRouter([
     ),
     handle: {
       title: "Create General Announcement"
+    }
+  },
+  {
+    path: "/vehicle-types",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <VehicleTypeList />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "Vehicle Types"
+    }
+  },
+  {
+    path: "/vehicle-types/add",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <React.Suspense>
+            <VehicleTypeForm />
+          </React.Suspense>
+        </Layout>
+      </ProtectedRoute>
+    ),
+    handle: {
+      title: "Add Vehicle Type"
     }
   },
   {

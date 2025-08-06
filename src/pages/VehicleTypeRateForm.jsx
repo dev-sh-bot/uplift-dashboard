@@ -15,6 +15,8 @@ const VehicleTypeRateForm = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadedIcon, setUploadedIcon] = useState(null);
     const [iconPreview, setIconPreview] = useState(null);
+    const [vehicleTypes, setVehicleTypes] = useState([]);
+    const [vehicleTypesLoading, setVehicleTypesLoading] = useState(false);
     const navigate = useNavigate();
     const user = useSelector(selectUser);
     const {
@@ -29,19 +31,32 @@ const VehicleTypeRateForm = () => {
         citiesLoading,
     } = useGlobalData();
 
-    console.log('VehicleTypeRateForm: Global data state:', {
-        countriesCount: countries.length,
-        statesCount: states.length,
-        countriesLoading,
-        statesLoading
-    });
-
-    // Load countries on component mount
+    // Load countries and vehicle types on component mount
     useEffect(() => {
         if (countries.length === 0) {
             loadCountries();
         }
+        loadVehicleTypes();
     }, [countries.length, loadCountries]);
+
+    // Load vehicle types
+    const loadVehicleTypes = async () => {
+        try {
+            setVehicleTypesLoading(true);
+            const response = await axios.get(`${API_URL}admin/list/vehicle-type`, {
+                headers: {
+                    Authorization: `Bearer ${user?.token}`,
+                },
+            });
+            setVehicleTypes(response.data || []);
+        } catch (error) {
+            console.error('Error loading vehicle types:', error);
+            triggerToast('Failed to load vehicle types', 'error');
+            setVehicleTypes([]);
+        } finally {
+            setVehicleTypesLoading(false);
+        }
+    };
 
     const handleRefreshGlobalData = async () => {
         console.log('Manually refreshing global data...');
@@ -103,13 +118,11 @@ const VehicleTypeRateForm = () => {
                     });
                     const data = response.data;
                     setEditData(data);
-                    setValue('title', data.title);
-                    setValue('description', data.description);
+                    setValue('vehicle_type_id', data.vehicle_type_id);
                     setValue('base_price', data.base_price);
                     setValue('price_per_km', data.price_per_km);
                     setValue('price_per_min', data.price_per_min);
                     setValue('booking_fee', data.booking_fee);
-                    setValue('ride_charge', data.ride_charge || '');
                     if (data.icon) {
                         setIconPreview(`${ASSETS_URL}${data.icon}`);
                     }
@@ -189,16 +202,14 @@ const VehicleTypeRateForm = () => {
             const formData = new FormData();
 
             // Add all form fields to FormData
-            formData.append('title', data.title);
-            formData.append('booking_fee', data.booking_fee);
+            formData.append('vehicle_type_id', data.vehicle_type_id);
             formData.append('base_price', data.base_price);
             formData.append('price_per_km', data.price_per_km);
             formData.append('price_per_min', data.price_per_min);
-            formData.append('country_id', data.country_id);
-            formData.append('state_id', data.state_id);
+            formData.append('booking_fee', data.booking_fee);
             formData.append('city_id', data.city_id);
-            formData.append('description', data.description || '');
-            formData.append('ride_charge', data.ride_charge || '0');
+            formData.append('state_id', data.state_id);
+            formData.append('country_id', data.country_id);
 
             // Add icon file if uploaded
             if (uploadedIcon) {
@@ -250,33 +261,40 @@ const VehicleTypeRateForm = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
-                                    Title <span className="text-red-500">*</span>
+                                    Vehicle Type <span className="text-red-500">*</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    {...register('title', { required: 'Title is required' })}
+                                <select
+                                    {...register('vehicle_type_id', { required: 'Vehicle type is required' })}
                                     className="form-input"
-                                    placeholder="Enter vehicle type title"
-                                />
-                                {errors.title && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                                    disabled={vehicleTypesLoading}
+                                >
+                                    <option value="">
+                                        {vehicleTypesLoading ? 'Loading vehicle types...' : 'Select Vehicle Type'}
+                                    </option>
+                                    {vehicleTypes.map((vehicleType) => (
+                                        <option key={vehicleType.id} value={vehicleType.id}>
+                                            {vehicleType.title} - {vehicleType.description}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.vehicle_type_id && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.vehicle_type_id.message}</p>
+                                )}
+                                {vehicleTypes.length === 0 && !vehicleTypesLoading && (
+                                    <div className="mt-2">
+                                        <p className="text-red-500 text-sm">No vehicle types available</p>
+                                        <button
+                                            type="button"
+                                            onClick={loadVehicleTypes}
+                                            className="mt-1 px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                                        >
+                                            <FaSync size={10} />
+                                            <span>Retry</span>
+                                        </button>
+                                    </div>
                                 )}
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
-                                    Description <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    {...register('description', { required: 'Description is required' })}
-                                    rows="3"
-                                    className="form-textarea"
-                                    placeholder="Enter description"
-                                />
-                                {errors.description && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
-                                )}
-                            </div>
                         </div>
                     </div>
 
@@ -364,23 +382,6 @@ const VehicleTypeRateForm = () => {
                                 )}
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
-                                    Ride Charge
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    {...register('ride_charge', {
-                                        min: { value: 0, message: 'Ride charge must be positive' }
-                                    })}
-                                    className="form-input"
-                                    placeholder="0.00"
-                                />
-                                {errors.ride_charge && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.ride_charge.message}</p>
-                                )}
-                            </div>
                         </div>
                     </div>
 

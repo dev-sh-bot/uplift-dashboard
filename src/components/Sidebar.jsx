@@ -44,6 +44,11 @@ const menuItems = [
     icon: <FaCar />,
   },
   {
+    title: "Vehicle Types",
+    path: "/vehicle-types",
+    icon: <FaCar />,
+  },
+  {
     title: "Vehicle Type Rates",
     path: "/vehicle-type-rates",
     icon: <FaCar />,

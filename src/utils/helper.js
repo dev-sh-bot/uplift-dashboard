@@ -75,3 +75,11 @@ export function goToViewPage(navigate, user, link, permission = null) {
             break;
     }
 }
+
+export const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+};
