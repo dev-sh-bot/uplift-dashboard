@@ -4,9 +4,8 @@ import axios from 'axios';
 import { API_URL } from '../utils/constants';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/authSlice';
-import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const daysOfWeek = [
   { value: 'mon', label: 'Monday' },
@@ -20,10 +19,12 @@ const daysOfWeek = [
 
 const SurgeRateForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [vehicleTypes, setVehicleTypes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [vehicleTypeRate, setVehicleTypeRate] = useState(null);
+  const location = useLocation();
   const user = useSelector(selectUser);
   const navigate = useNavigate();
+  
+  const vehicleTypeRateData = location.state?.vehicleTypeRate;
 
   const {
     register,
@@ -33,29 +34,19 @@ const SurgeRateForm = () => {
   } = useForm();
 
   useEffect(() => {
-    const fetchVehicleTypes = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${API_URL}admin/list/vehicle-type-rates`, {
-          headers: {
-            Authorization: `Bearer ${user?.token}`,
-          },
-        });
-        setVehicleTypes(response.data);
-      } catch (error) {
-        console.log(error);
-        triggerToast('Failed to fetch vehicle types', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchVehicleTypes();
-  }, [user]);
+    if (vehicleTypeRateData) {
+      setVehicleTypeRate(vehicleTypeRateData);
+    }
+  }, [vehicleTypeRateData]);
 
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      const response = await axios.post(`${API_URL}admin/surge-rates`, data, {
+      const payload = {
+        ...data,
+        vehicle_type_rate_id: vehicleTypeRate?.id
+      };
+      const response = await axios.post(`${API_URL}admin/surge-rates`, payload, {
         headers: {
           Authorization: `Bearer ${user?.token}`,
         },
@@ -71,19 +62,6 @@ const SurgeRateForm = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <ColorRing
-          visible={true}
-          height="80"
-          width="80"
-          colors={['#8484c1', '#8484c1', '#8484c1', '#8484c1', '#8484c1']}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="page-section">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -92,26 +70,28 @@ const SurgeRateForm = () => {
           <div className="page-card p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-facebook-text mb-4 flex items-center">
               <div className="w-1 h-6 bg-blue-600 rounded-full mr-3"></div>
-              Basic Information
+              Create Surge Rate for {vehicleTypeRate?.title || 'Vehicle Type'}
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
-                  Vehicle Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  {...register('vehicle_type_rate_id', { required: 'Vehicle type is required' })}
-                  className="form-input"
-                >
-                  <option value="">Select Vehicle Type</option>
-                  {vehicleTypes.map((type) => (
-                    <option key={type.id} value={type.id}>{type.title}</option>
-                  ))}
-                </select>
-                {errors.vehicle_type_rate_id && (
-                  <p className="text-red-500 text-sm mt-1">{errors.vehicle_type_rate_id.message}</p>
-                )}
-              </div>
+              {vehicleTypeRate && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-blue-600 dark:text-blue-400">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        Creating surge rate for: {vehicleTypeRate.title}
+                      </h3>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        Base Price: {vehicleTypeRate.base_price} | Per KM: {vehicleTypeRate.price_per_km} | Per Min: {vehicleTypeRate.price_per_min}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">

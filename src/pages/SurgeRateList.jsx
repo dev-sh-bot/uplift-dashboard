@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
-import { FaEye, FaPlus, FaSearch } from 'react-icons/fa';
+import { FaEye, FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 const SurgeRateList = () => {
@@ -76,13 +76,6 @@ const SurgeRateList = () => {
               className="search-input"
             />
           </div>
-          <button
-            onClick={() => navigate('/surge-rates/create')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center space-x-2 font-medium"
-          >
-            <FaPlus size={14} />
-            <span>Add Surge Rate</span>
-          </button>
         </div>
       </div>
       {/* Table Card */}

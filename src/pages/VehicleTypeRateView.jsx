@@ -5,7 +5,7 @@ import { API_URL, ASSETS_URL } from '../utils/constants';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
-import { FaArrowLeft, FaMapMarkerAlt, FaCalendarAlt, FaCar } from 'react-icons/fa';
+import { FaArrowLeft, FaMapMarkerAlt, FaCalendarAlt, FaCar, FaClock, FaEdit } from 'react-icons/fa';
 import { useGlobalData } from '../hooks/useGlobalData';
 
 const labelClass = 'text-xs flex items-center gap-2 font-semibold uppercase tracking-wide text-gray-500 dark:text-facebook-textSecondary';
@@ -122,6 +122,25 @@ const VehicleTypeRateView = () => {
                 </div>
                 {/* Sidebar Card */}
                 <div className="w-full lg:w-80 flex-shrink-0 space-y-6">
+                    <div className="page-card p-6">
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-facebook-text mb-4">Actions</h2>
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => navigate('/surge-rates/create', { state: { vehicleTypeRate: data } })}
+                                className="w-full px-4 py-3 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-xl hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2"
+                            >
+                                <FaClock size={16} />
+                                <span>Add Surge Rate</span>
+                            </button>
+                            <button
+                                onClick={() => navigate(`/vehicle-type-rates/edit/${data.id}`)}
+                                className="w-full px-4 py-3 text-sm font-medium text-gray-700 dark:text-facebook-text bg-gray-100 dark:bg-facebook-surface border border-gray-300 dark:border-facebook-border rounded-xl hover:bg-gray-200 dark:hover:bg-facebook-hover transition-colors flex items-center justify-center space-x-2"
+                            >
+                                <FaEdit size={16} />
+                                <span>Edit Rate</span>
+                            </button>
+                        </div>
+                    </div>
                     <div className="page-card p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-facebook-text mb-3">Location</h2>
                         <div className="space-y-3">

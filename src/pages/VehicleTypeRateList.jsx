@@ -6,7 +6,7 @@ import { selectUser } from '../reducers/authSlice';
 import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import ReactPaginate from 'react-paginate';
-import { FaSearch, FaEye, FaEdit, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaEye, FaEdit, FaPlus, FaClock } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 const VehicleTypeList = () => {
@@ -189,6 +189,13 @@ const VehicleTypeList = () => {
                                             </button>
                                             <button className="action-button action-button-edit" onClick={() => navigate(`/vehicle-type-rates/edit/${vehicleType.id}`)}>
                                                 <FaEdit size={16} />
+                                            </button>
+                                            <button 
+                                                className="action-button bg-orange-100 hover:bg-orange-200 text-orange-600 border-orange-300 dark:bg-orange-900/30 dark:hover:bg-orange-900/50 dark:text-orange-400 dark:border-orange-700" 
+                                                onClick={() => navigate('/surge-rates/create', { state: { vehicleTypeRate: vehicleType } })}
+                                                title="Add Surge Rate"
+                                            >
+                                                <FaClock size={16} />
                                             </button>
                                         </div>
                                     </td>
