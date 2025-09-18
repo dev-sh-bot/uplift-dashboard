@@ -8,8 +8,10 @@ import { triggerToast } from '../utils/helper';
 import ReactPaginate from 'react-paginate';
 import { FaSearch, FaEye, FaEdit, FaPlus, FaClock } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import { useQueryParams } from '../hooks/useQueryParams';
 
-const VehicleTypeList = () => {
+const VehicleTypeRateList = () => {
     const [vehicleTypes, setVehicleTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -18,6 +20,12 @@ const VehicleTypeList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const user = useSelector(selectUser);
     const navigate = useNavigate();
+
+    // Debounce search term to reduce API calls
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+    // Handle query params for search and pagination
+    const { updatePageParam } = useQueryParams(searchTerm, debouncedSearchTerm, setSearchTerm, setCurrentPage);
 
     const fetchVehicleTypes = async (page = 1, search = '') => {
         try {
@@ -45,11 +53,13 @@ const VehicleTypeList = () => {
     };
 
     useEffect(() => {
-        fetchVehicleTypes(currentPage, searchTerm);
-    }, [currentPage, searchTerm]);
+        fetchVehicleTypes(currentPage, debouncedSearchTerm);
+    }, [currentPage, debouncedSearchTerm]);
 
     const handlePageChange = (selectedItem) => {
-        setCurrentPage(selectedItem.selected + 1);
+        const newPage = selectedItem.selected + 1;
+        setCurrentPage(newPage);
+        updatePageParam(newPage);
     };
 
 
@@ -232,4 +242,4 @@ const VehicleTypeList = () => {
     );
 };
 
-export default VehicleTypeList; 
+export default VehicleTypeRateList; 

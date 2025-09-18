@@ -7,6 +7,8 @@ import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import { FaEye, FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import { useQueryParams } from '../hooks/useQueryParams';
 
 const VehicleList = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -16,25 +18,32 @@ const VehicleList = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
 
+  // Debounce search term to reduce API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Handle query params for search
+  const { updatePageParam } = useQueryParams(searchTerm, debouncedSearchTerm, setSearchTerm);
+
+  const fetchVehicles = async (search = '') => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_URL}admin/vehicles`, {
+        headers: { Authorization: `Bearer ${user?.token}` },
+        params: { search },
+      });
+      const dataArr = Array.isArray(response.data.data) ? response.data.data : [];
+      setVehicles(dataArr);
+      setTotalItems(response.data.total || dataArr.length);
+    } catch {
+      triggerToast('Failed to fetch vehicles', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${API_URL}admin/vehicles`, {
-          headers: { Authorization: `Bearer ${user?.token}` },
-          params: { search: searchTerm },
-        });
-        const dataArr = Array.isArray(response.data.data) ? response.data.data : [];
-        setVehicles(dataArr);
-        setTotalItems(response.data.total || dataArr.length);
-      } catch {
-        triggerToast('Failed to fetch vehicles', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [user, searchTerm]);
+    fetchVehicles(debouncedSearchTerm);
+  }, [debouncedSearchTerm, user?.token]);
 
   if (loading) {
     return (

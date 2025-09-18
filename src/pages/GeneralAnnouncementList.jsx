@@ -8,6 +8,8 @@ import { triggerToast } from '../utils/helper';
 import { FaPlus, FaSearch, FaPaperclip } from 'react-icons/fa';
 import { FaImage } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import { useQueryParams } from '../hooks/useQueryParams';
 
 const GeneralAnnouncementList = () => {
     const [announcements, setAnnouncements] = useState([]);
@@ -17,25 +19,32 @@ const GeneralAnnouncementList = () => {
     const user = useSelector(selectUser);
     const navigate = useNavigate();
 
+    // Debounce search term to reduce API calls
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+    // Handle query params for search
+    const { updatePageParam } = useQueryParams(searchTerm, debouncedSearchTerm, setSearchTerm);
+
+    const fetchAnnouncements = async (search = '') => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${API_URL}admin/general-announcement`, {
+                headers: { Authorization: `Bearer ${user?.token}` },
+                params: { search },
+            });
+            const dataArr = Array.isArray(response.data.data) ? response.data.data : [];
+            setAnnouncements(dataArr);
+            setTotalItems(response.data.total || dataArr.length);
+        } catch {
+            triggerToast('Failed to fetch announcements', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const response = await axios.get(`${API_URL}admin/general-announcement`, {
-                    headers: { Authorization: `Bearer ${user?.token}` },
-                    params: { search: searchTerm },
-                });
-                const dataArr = Array.isArray(response.data.data) ? response.data.data : [];
-                setAnnouncements(dataArr);
-                setTotalItems(response.data.total || dataArr.length);
-            } catch {
-                triggerToast('Failed to fetch announcements', 'error');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [user, searchTerm]);
+        fetchAnnouncements(debouncedSearchTerm);
+    }, [debouncedSearchTerm, user?.token]);
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';

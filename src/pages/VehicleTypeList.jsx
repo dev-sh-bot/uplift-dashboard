@@ -7,6 +7,8 @@ import { ColorRing } from 'react-loader-spinner';
 import { formatDate, triggerToast } from '../utils/helper';
 import { FaSearch, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import { useQueryParams } from '../hooks/useQueryParams';
 
 const VehicleTypeList = () => {
     const [vehicleTypes, setVehicleTypes] = useState([]);
@@ -15,6 +17,12 @@ const VehicleTypeList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const user = useSelector(selectUser);
     const navigate = useNavigate();
+
+    // Debounce search term to reduce API calls
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+    // Handle query params for search
+    const { updatePageParam } = useQueryParams(searchTerm, debouncedSearchTerm, setSearchTerm);
 
     const fetchVehicleTypes = async (search = '') => {
         try {
@@ -40,8 +48,8 @@ const VehicleTypeList = () => {
     };
 
     useEffect(() => {
-        fetchVehicleTypes(searchTerm);
-    }, [searchTerm, user]);
+        fetchVehicleTypes(debouncedSearchTerm);
+    }, [debouncedSearchTerm, user?.token]);
 
     if (loading) {
         return (

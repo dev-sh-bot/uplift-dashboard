@@ -8,6 +8,8 @@ import { triggerToast } from '../utils/helper';
 import ReactPaginate from 'react-paginate';
 import { FaSearch, FaEye, FaCog } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import { useQueryParams } from '../hooks/useQueryParams';
 import StatusUpdateModal from '../components/StatusUpdateModal';
 
 const RidersList = () => {
@@ -22,6 +24,12 @@ const RidersList = () => {
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const user = useSelector(selectUser);
     const navigate = useNavigate();
+
+    // Debounce search term to reduce API calls
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+    // Handle query params for search and pagination
+    const { updatePageParam } = useQueryParams(searchTerm, debouncedSearchTerm, setSearchTerm, setCurrentPage);
 
     const fetchRiders = async (page = 1, search = '') => {
         try {
@@ -90,11 +98,13 @@ const RidersList = () => {
     };
 
     useEffect(() => {
-        fetchRiders(currentPage, searchTerm);
-    }, [currentPage, searchTerm]);
+        fetchRiders(currentPage, debouncedSearchTerm);
+    }, [currentPage, debouncedSearchTerm]);
 
     const handlePageChange = (selectedItem) => {
-        setCurrentPage(selectedItem.selected + 1);
+        const newPage = selectedItem.selected + 1;
+        setCurrentPage(newPage);
+        updatePageParam(newPage);
     };
 
 

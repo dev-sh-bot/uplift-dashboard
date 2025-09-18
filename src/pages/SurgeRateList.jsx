@@ -7,6 +7,8 @@ import { ColorRing } from 'react-loader-spinner';
 import { triggerToast } from '../utils/helper';
 import { FaEye, FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import { useQueryParams } from '../hooks/useQueryParams';
 
 const SurgeRateList = () => {
   const [surgeRates, setSurgeRates] = useState([]);
@@ -17,31 +19,38 @@ const SurgeRateList = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
 
+  // Debounce search term to reduce API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Handle query params for search
+  const { updatePageParam } = useQueryParams(searchTerm, debouncedSearchTerm, setSearchTerm);
+
+  const fetchSurgeRates = async (search = '') => {
+    try {
+      setLoading(true);
+      const [surgeRes, vehicleRes] = await Promise.all([
+        axios.get(`${API_URL}admin/surge-rates`, {
+          headers: { Authorization: `Bearer ${user?.token}` },
+          params: { search },
+        }),
+        axios.get(`${API_URL}admin/list/vehicle-type-rates`, {
+          headers: { Authorization: `Bearer ${user?.token}` },
+        })
+      ]);
+      const dataArr = Array.isArray(surgeRes.data.data) ? surgeRes.data.data : Array.isArray(surgeRes.data) ? surgeRes.data : [];
+      setSurgeRates(dataArr);
+      setTotalItems(surgeRes.data.total || dataArr.length);
+      setVehicleTypes(vehicleRes.data);
+    } catch {
+      triggerToast('Failed to fetch surge rates', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [surgeRes, vehicleRes] = await Promise.all([
-          axios.get(`${API_URL}admin/surge-rates`, {
-            headers: { Authorization: `Bearer ${user?.token}` },
-            params: { search: searchTerm },
-          }),
-          axios.get(`${API_URL}admin/list/vehicle-type-rates`, {
-            headers: { Authorization: `Bearer ${user?.token}` },
-          })
-        ]);
-        const dataArr = Array.isArray(surgeRes.data.data) ? surgeRes.data.data : Array.isArray(surgeRes.data) ? surgeRes.data : [];
-        setSurgeRates(dataArr);
-        setTotalItems(surgeRes.data.total || dataArr.length);
-        setVehicleTypes(vehicleRes.data);
-      } catch {
-        triggerToast('Failed to fetch surge rates', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [user, searchTerm]);
+    fetchSurgeRates(debouncedSearchTerm);
+  }, [debouncedSearchTerm, user?.token]);
 
   const getVehicleTypeName = (id) => {
     const vt = vehicleTypes.find(v => String(v.id) === String(id));

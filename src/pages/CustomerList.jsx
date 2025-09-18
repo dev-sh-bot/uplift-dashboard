@@ -10,6 +10,8 @@ import { FaSearch, FaEye } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { updateCustomerStatus } from '../services/locationService';
 import Toggle from 'react-toggle';
+import { useDebounce } from '../hooks/useDebounce';
+import { useQueryParams } from '../hooks/useQueryParams';
 
 const CustomerList = () => {
     const [customers, setCustomers] = useState([]);
@@ -21,6 +23,12 @@ const CustomerList = () => {
     const [statusUpdatingId, setStatusUpdatingId] = useState(null);
     const user = useSelector(selectUser);
     const navigate = useNavigate();
+
+    // Debounce search term to reduce API calls
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+    // Handle query params for search and pagination
+    const { updatePageParam } = useQueryParams(searchTerm, debouncedSearchTerm, setSearchTerm, setCurrentPage);
 
     const fetchCustomers = async (page = 1, search = '') => {
         try {
@@ -48,11 +56,13 @@ const CustomerList = () => {
     };
 
     useEffect(() => {
-        fetchCustomers(currentPage, searchTerm);
-    }, [currentPage, searchTerm]);
+        fetchCustomers(currentPage, debouncedSearchTerm);
+    }, [currentPage, debouncedSearchTerm]);
 
     const handlePageChange = (selectedItem) => {
-        setCurrentPage(selectedItem.selected + 1);
+        const newPage = selectedItem.selected + 1;
+        setCurrentPage(newPage);
+        updatePageParam(newPage);
     };
 
     const handleStatusChange = async (customerId, newStatus) => {
