@@ -5,6 +5,7 @@ import Modal from 'react-modal';
 import { ToastContainer } from 'react-toastify';
 import { Provider } from 'react-redux';
 import store from './store.js';
+import './axiosSetup';
 import 'react-toastify/dist/ReactToastify.css';
 import "react-toggle/style.css"; // Import react-toggle styles
 import 'react-date-range/dist/styles.css'; // Main style file
