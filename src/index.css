@@ -621,8 +621,8 @@ body {
     border-radius: 12px !important;
     border: none !important;
     transition: all 0.3s ease-in-out;
-    max-width: 600px !important;
-    width: 100% !important;
+    max-width: fit-content !important;
+    width: auto !important;
     background: white !important;
     margin: auto auto !important;
 }

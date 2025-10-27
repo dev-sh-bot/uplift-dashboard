@@ -16,7 +16,7 @@ TopBarProgress.config({
 
 const Layout = ({ children }) => {
   const location = useLocation();
-  const [openSidebar, setOpenSidebar] = useState(false);
+  const [openSidebar, setOpenSidebar] = useState(true);
   const [progress, setProgress] = useState(false);
 
   // Save the previous page URL into sessionStorage based on specific conditions
