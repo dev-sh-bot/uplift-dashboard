@@ -116,6 +116,7 @@ const VehicleTypeRateView = () => {
                                 <div className="flex items-center justify-between gap-2"><span className={labelClass}>Price per KM:</span><span className={valueClass}>{data.price_per_km}</span></div>
                                 <div className="flex items-center justify-between gap-2"><span className={labelClass}>Price per Min:</span><span className={valueClass}>{data.price_per_min}</span></div>
                                 <div className="flex items-center justify-between gap-2"><span className={labelClass}>Booking Fee:</span><span className={valueClass}>{data.booking_fee}</span></div>
+                                <div className="flex items-center justify-between gap-2"><span className={labelClass}>Wait Time:</span><span className={valueClass}>{data.wait_time} minutes</span></div>
                             </div>
                         </div>
                     </div>

@@ -123,6 +123,7 @@ const VehicleTypeRateForm = () => {
                     setValue('price_per_km', data.price_per_km);
                     setValue('price_per_min', data.price_per_min);
                     setValue('booking_fee', data.booking_fee);
+                    setValue('wait_time', data.wait_time);
                     if (data.icon) {
                         setIconPreview(`${ASSETS_URL}${data.icon}`);
                     }
@@ -207,6 +208,7 @@ const VehicleTypeRateForm = () => {
             formData.append('price_per_km', data.price_per_km);
             formData.append('price_per_min', data.price_per_min);
             formData.append('booking_fee', data.booking_fee);
+            formData.append('wait_time', data.wait_time);
             formData.append('city_id', data.city_id);
             formData.append('state_id', data.state_id);
             formData.append('country_id', data.country_id);
@@ -382,6 +384,24 @@ const VehicleTypeRateForm = () => {
                                 )}
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-facebook-textSecondary mb-2">
+                                    Wait Time (minutes) <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    {...register('wait_time', {
+                                        required: 'Wait time is required',
+                                        min: { value: 0, message: 'Wait time must be positive' }
+                                    })}
+                                    className="form-input"
+                                    placeholder="0.00"
+                                />
+                                {errors.wait_time && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.wait_time.message}</p>
+                                )}
+                            </div>
                         </div>
                     </div>
 
