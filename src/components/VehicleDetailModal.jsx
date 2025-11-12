@@ -1,12 +1,19 @@
 import Modal from 'react-modal';
 import PropTypes from 'prop-types';
-import { FaTimes, FaCar, FaCheckCircle, FaTimesCircle, FaCalendarAlt, FaImage } from 'react-icons/fa';
-import { ASSETS_URL } from '../utils/constants';
+import { FaTimes, FaCar } from 'react-icons/fa';
+import axios from 'axios';
+import { ASSETS_URL, API_URL } from '../utils/constants';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../reducers/authSlice';
+import { triggerToast } from '../utils/helper';
+import { useState } from 'react';
 
 const labelClass = 'text-xs flex items-center gap-2 font-semibold uppercase tracking-wide text-gray-500 dark:text-facebook-textSecondary';
 const valueClass = 'text-base font-medium text-gray-900 dark:text-facebook-text';
 
-const VehicleDetailModal = ({ isOpen, onClose, vehicle }) => {
+const VehicleDetailModal = ({ isOpen, onClose, vehicle, riderId, onStatusChange }) => {
+  const user = useSelector(selectUser);
+  const [isUpdating, setIsUpdating] = useState(false);
   if (!vehicle) return null;
 
   // Parse images if present
@@ -16,6 +23,35 @@ const VehicleDetailModal = ({ isOpen, onClose, vehicle }) => {
   } catch {
     photos = [];
   }
+
+  const handleStatusUpdate = async (status) => {
+    try {
+      setIsUpdating(true);
+      const response = await axios.put(
+        `${API_URL}admin/riders/approved/${riderId}/${status}`,
+        { reason: '' },
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        triggerToast(`Rider status updated to ${status}`, 'success');
+        if (onStatusChange) {
+          onStatusChange();
+        }
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error updating rider status:', error);
+      triggerToast(error.response?.data?.message || 'Failed to update rider status', 'error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not provided';
@@ -88,10 +124,34 @@ const VehicleDetailModal = ({ isOpen, onClose, vehicle }) => {
             </div>
           )}
         </div>
-        <div className="flex justify-end mt-6">
+        <div className="flex justify-between items-center mt-6 gap-3">
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleStatusUpdate('approved')}
+              disabled={isUpdating}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isUpdating ? 'Updating...' : 'Approved'}
+            </button>
+            <button
+              onClick={() => handleStatusUpdate('pending')}
+              disabled={isUpdating}
+              className="px-4 py-2 text-sm font-medium text-white bg-yellow-600 border border-yellow-600 rounded-md hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isUpdating ? 'Updating...' : 'Pending'}
+            </button>
+            <button
+              onClick={() => handleStatusUpdate('suspended')}
+              disabled={isUpdating}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isUpdating ? 'Updating...' : 'Suspended'}
+            </button>
+          </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            disabled={isUpdating}
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             Close
           </button>
@@ -105,6 +165,8 @@ VehicleDetailModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   vehicle: PropTypes.object,
+  riderId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onStatusChange: PropTypes.func,
 };
 
 export default VehicleDetailModal; 

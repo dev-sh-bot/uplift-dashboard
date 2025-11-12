@@ -566,6 +566,8 @@ const RiderView = () => {
                 isOpen={vehicleDetailModalOpen}
                 onClose={() => setVehicleDetailModalOpen(false)}
                 vehicle={vehicleDetailModalVehicle}
+                riderId={id}
+                onStatusChange={fetchRiderDetails}
             />
         </div>
     );
